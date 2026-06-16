@@ -116,9 +116,10 @@ export default function CameraCapture({ onCapture, onClose }: Props) {
       onClick={(e) => { if (e.target === e.currentTarget) { stopStream(); onClose() } }}
       id="camera-modal"
     >
-      <div className="w-full h-full sm:w-full sm:max-w-lg sm:h-[85vh] sm:rounded-3xl border-0 sm:border border-white/10 bg-[#080b14] sm:bg-[#0b0f1a]/90 sm:backdrop-blur-md overflow-hidden flex flex-col animate-scale-in">
-        {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.06] shrink-0 bg-[#0b0f1a]">
+      <div className="w-full h-full sm:max-w-lg sm:h-[85vh] sm:landscape:max-w-none sm:landscape:w-full sm:landscape:h-full sm:landscape:rounded-none sm:rounded-3xl border-0 sm:border sm:landscape:border-0 border-white/10 bg-[#080b14] sm:bg-[#0b0f1a]/90 sm:backdrop-blur-md overflow-hidden flex flex-col landscape:flex-row animate-scale-in">
+        
+        {/* Portrait Header (hidden in landscape) */}
+        <div className="flex portrait:flex landscape:hidden items-center justify-between px-5 py-4 border-b border-white/[0.06] shrink-0 bg-[#0b0f1a] w-full">
           <div>
             <h2 className="text-white font-bold">📸 Kamera</h2>
             <p className="text-[#64748b] text-xs mt-0.5">
@@ -128,14 +129,14 @@ export default function CameraCapture({ onCapture, onClose }: Props) {
           <button
             onClick={() => { stopStream(); onClose() }}
             className="w-8 h-8 rounded-full glass border border-white/10 flex items-center justify-center text-[#94a3b8] hover:text-white transition-colors"
-            id="camera-close-btn"
+            id="camera-close-btn-portrait"
           >
             ✕
           </button>
         </div>
 
-        {/* Camera View - maximized dynamic 2:3 aspect container */}
-        <div className="flex-1 min-h-0 w-full flex items-center justify-center p-3 sm:p-4 bg-black/40 relative">
+        {/* Camera View */}
+        <div className="flex-1 min-h-0 min-w-0 flex items-center justify-center p-3 sm:p-4 bg-black/40 relative">
           {error ? (
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-center p-6 bg-[#0f1524]">
               <div className="text-4xl">🚫</div>
@@ -189,47 +190,70 @@ export default function CameraCapture({ onCapture, onClose }: Props) {
           )}
         </div>
 
-        {/* Controls */}
-        <div className="flex items-center justify-between px-6 py-4 gap-4 shrink-0 bg-[#070a12]">
-          {/* Switch camera */}
-          {hasMultipleCameras ? (
+        {/* Sidebar / Bottom Control Panel */}
+        <div className="flex flex-col shrink-0 w-full landscape:w-80 landscape:h-full border-t landscape:border-t-0 landscape:border-l border-white/[0.06] bg-[#070a12] justify-between">
+          
+          {/* Landscape Header (hidden in portrait) */}
+          <div className="hidden landscape:flex items-center justify-between px-5 py-4 border-b border-white/[0.06] shrink-0 bg-[#0b0f1a] w-full">
+            <div>
+              <h2 className="text-white font-bold">📸 Kamera</h2>
+              <p className="text-[#64748b] text-xs mt-0.5">
+                {facingMode === 'user' ? 'Kamera Depan (Selfie)' : 'Kamera Belakang'}
+              </p>
+            </div>
             <button
-              onClick={switchCamera}
-              className="w-12 h-12 rounded-full glass border border-white/10 flex items-center justify-center text-xl hover:border-white/20 transition-all hover:scale-110"
-              title="Ganti kamera"
-              id="switch-camera-btn"
+              onClick={() => { stopStream(); onClose() }}
+              className="w-8 h-8 rounded-full glass border border-white/10 flex items-center justify-center text-[#94a3b8] hover:text-white transition-colors"
+              id="camera-close-btn-landscape"
             >
-              🔄
+              ✕
             </button>
-          ) : (
-            <div className="w-12" />
-          )}
+          </div>
 
-          {/* Capture */}
-          <button
-            onClick={handleCapture}
-            disabled={!ready || !!error}
-            id="capture-btn"
-            className={`w-16 h-16 rounded-full flex items-center justify-center text-2xl transition-all ${
-              ready && !error
-                ? 'bg-white hover:bg-white/90 hover:scale-110 active:scale-95 shadow-lg shadow-white/20'
-                : 'bg-white/20 cursor-not-allowed'
-            }`}
-          >
-            📸
-          </button>
+          {/* Buttons Area */}
+          <div className="flex-1 flex flex-col justify-center py-6 px-6 gap-6 w-full">
+            <div className="flex items-center justify-between landscape:flex-col landscape:justify-center landscape:gap-8 w-full">
+              {/* Switch camera */}
+              {hasMultipleCameras ? (
+                <button
+                  onClick={switchCamera}
+                  className="w-12 h-12 rounded-full glass border border-white/10 flex items-center justify-center text-xl hover:border-white/20 transition-all hover:scale-110"
+                  title="Ganti kamera"
+                  id="switch-camera-btn"
+                >
+                  🔄
+                </button>
+              ) : (
+                <div className="w-12" />
+              )}
 
-          {/* Flip label */}
-          <div className="w-12 text-center">
-            <span className="text-[#64748b] text-[10px]">
-              {facingMode === 'user' ? '🤳 Depan' : '📷 Belakang'}
-            </span>
+              {/* Capture */}
+              <button
+                onClick={handleCapture}
+                disabled={!ready || !!error}
+                id="capture-btn"
+                className={`w-16 h-16 rounded-full flex items-center justify-center text-2xl transition-all ${
+                  ready && !error
+                    ? 'bg-white hover:bg-white/90 hover:scale-110 active:scale-95 shadow-lg shadow-white/20'
+                    : 'bg-white/20 cursor-not-allowed'
+                }`}
+              >
+                📸
+              </button>
+
+              {/* Flip label */}
+              <div className="w-12 text-center">
+                <span className="text-[#64748b] text-[10px] block">
+                  {facingMode === 'user' ? '🤳 Depan' : '📷 Belakang'}
+                </span>
+              </div>
+            </div>
+
+            <p className="text-center text-[#64748b] text-[11px]">
+              Klik tombol untuk mengambil foto
+            </p>
           </div>
         </div>
-
-        <p className="text-center text-[#64748b] text-[11px] pb-3 shrink-0 bg-[#070a12]">
-          Klik tombol untuk mengambil foto
-        </p>
       </div>
     </div>
   )
