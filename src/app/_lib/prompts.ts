@@ -182,13 +182,17 @@ export function buildPrompt(
     stylePrompt = found?.prompt ?? ''
   }
 
-  const facePart = extraParams?.faceProfile 
-    ? `of the subject, who is: ${extraParams.faceProfile}.` 
-    : 'of the subject.'
+  let faceDesc = extraParams?.faceProfile?.trim() || ''
+  if (faceDesc && faceDesc.endsWith('.')) {
+    faceDesc = faceDesc.slice(0, -1).trim()
+  }
+
+  const promptSentence = faceDesc
+    ? `Professional portrait photography of the subject: ${faceDesc}, ${stylePrompt}.`
+    : `Professional portrait photography of the subject, ${stylePrompt}.`
 
   return `
-Professional portrait photography ${facePart}
-Style: ${stylePrompt}
+${promptSentence}
 ${FACE_LOCK_INSTRUCTION}
 High quality, photorealistic, professional studio lighting, sharp focus.
   `.trim()
@@ -205,6 +209,10 @@ function getCategoryOptions(category: StyleCategory): PromptOption[] {
 }
 
 export function translateCustomPrompt(indonesian: string): string {
+  if (indonesian.startsWith('ai-translated:')) {
+    return indonesian.replace('ai-translated:', '').trim()
+  }
+
   const translations: Record<string, string> = {
     'jadi presiden': 'as a distinguished national President, wearing a premium custom tailored formal suit with a patriotic flag pin, standing behind a stately press conference podium with national flags in a grand hall background, professional presidential portrait, confident expression',
     'jadi pemain golf': 'as a professional golfer in stylish golf attire (polo shirt, golf glove, cap), standing on a lush green golf course fairway under clear blue sky, holding a golf club, mid-swing or confident post-shot pose, beautiful morning light',

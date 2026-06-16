@@ -1,0 +1,8 @@
+import { NextResponse } from 'next/server'
+
+export const runtime = 'nodejs'
+
+export async function GET() {
+  const hasServerKey = !!process.env.GEMINI_API_KEY
+  return NextResponse.json({ hasServerKey })
+}

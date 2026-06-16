@@ -102,50 +102,6 @@ const STEPS = [
   },
 ]
 
-const PRICING = [
-  {
-    name: 'Basic',
-    price: 'Rp 149.000',
-    period: ' / sekali bayar',
-    desc: 'Lisensi selamanya untuk pemula',
-    features: ['100 foto total', '7 menu gaya', 'HD download (2MP)', 'Akses selamanya', 'Version history 3x'],
-    cta: 'Mulai Basic',
-    popular: false,
-  },
-  {
-    name: 'Pro',
-    price: 'Rp 399.000',
-    period: ' / sekali bayar',
-    desc: 'Studio foto profesional lifetime',
-    features: [
-      '1.000 foto total',
-      'Semua menu + Custom AI',
-      '4K download (8MP)',
-      'Face Lock Technology',
-      'Version history unlimited',
-      'Akses selamanya',
-    ],
-    cta: 'Mulai Pro',
-    popular: true,
-  },
-  {
-    name: 'Enterprise',
-    price: 'Custom',
-    period: ' / sekali bayar',
-    desc: 'Solusi untuk bisnis besar',
-    features: [
-      'Unlimited foto',
-      'API access',
-      'White-label',
-      '8K download',
-      'Akses selamanya',
-      'Custom integrasi',
-    ],
-    cta: 'Hubungi Sales',
-    popular: false,
-  },
-]
-
 const QUICK_PROMPTS = [
   '"Ganti jas biru"',
   '"Ke Paris malam"',
@@ -213,21 +169,21 @@ export default function HomePage() {
           </p>
 
           {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-14 animate-fade-in-up animate-delay-300">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-14 animate-fade-in-up animate-delay-300 max-w-lg mx-auto">
             <Link
-              href="/studio"
-              id="hero-cta-primary"
-              className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-2xl btn-primary text-base sm:text-lg font-bold animate-pulse-glow"
+              href="/studio?action=camera"
+              id="hero-cta-camera"
+              className="inline-flex items-center justify-center gap-2 px-6 py-4 rounded-2xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:opacity-90 text-white font-bold text-base sm:text-lg shadow-lg shadow-violet-500/20 transition-all active:scale-95"
             >
-              🚀 Mulai Gratis Sekarang
+              📸 Ambil Selfie / Foto
             </Link>
-            <a
-              href="#cara-kerja"
-              id="hero-cta-secondary"
-              className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-2xl glass border border-white/10 text-white font-semibold text-base sm:text-lg hover:border-white/20 transition-all"
+            <Link
+              href="/studio?action=upload"
+              id="hero-cta-upload"
+              className="inline-flex items-center justify-center gap-2 px-6 py-4 rounded-2xl glass border border-white/10 hover:border-white/20 text-white font-bold text-base sm:text-lg transition-all active:scale-95"
             >
-              ▶ Lihat Demo
-            </a>
+              🖼️ Upload dari Galeri
+            </Link>
           </div>
 
           {/* Quick Prompt Chips */}
@@ -271,14 +227,23 @@ export default function HomePage() {
             {STEPS.map((step, i) => (
               <div
                 key={i}
-                className="glass-card rounded-3xl p-8 border border-white/[0.06] hover:border-violet-500/25 transition-all group hover:-translate-y-2 duration-300"
+                className="glass-card rounded-3xl p-8 border border-white/[0.06] hover:border-violet-500/25 transition-all group hover:-translate-y-2 duration-300 flex flex-col justify-between"
               >
-                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-violet-600/20 to-cyan-600/20 border border-violet-500/20 flex items-center justify-center text-3xl mb-5 group-hover:scale-110 transition-transform duration-300">
-                  {step.icon}
+                <div>
+                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-violet-600/20 to-cyan-600/20 border border-violet-500/20 flex items-center justify-center text-3xl mb-5 group-hover:scale-110 transition-transform duration-300">
+                    {step.icon}
+                  </div>
+                  <p className="text-violet-400 text-xs font-bold uppercase tracking-widest mb-2">{step.num}</p>
+                  <h3 className="text-xl font-bold text-white mb-3">{step.title}</h3>
+                  <p className="text-[#94a3b8] text-sm leading-relaxed mb-4">{step.desc}</p>
                 </div>
-                <p className="text-violet-400 text-xs font-bold uppercase tracking-widest mb-2">{step.num}</p>
-                <h3 className="text-xl font-bold text-white mb-3">{step.title}</h3>
-                <p className="text-[#94a3b8] text-sm leading-relaxed">{step.desc}</p>
+                {i === 0 && (
+                  <div className="flex gap-3 pt-2 mt-auto border-t border-white/[0.05]">
+                    <Link href="/studio?action=camera" className="text-xs text-violet-400 hover:text-violet-300 font-bold hover:underline">📸 Ambil Selfie</Link>
+                    <span className="text-[#64748b] text-xs select-none">•</span>
+                    <Link href="/studio?action=upload" className="text-xs text-violet-400 hover:text-violet-300 font-bold hover:underline">🖼️ Upload Foto</Link>
+                  </div>
+                )}
               </div>
             ))}
           </div>
@@ -404,78 +369,6 @@ export default function HomePage() {
           </div>
         </div>
       </section>
-
-      {/* ── PRICING ────────────────────────────────────── */}
-      <section id="paket" className="py-28 px-4 relative">
-        <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          <div className="orb w-[400px] h-[400px] bg-violet-700 top-0 left-[50%] -translate-x-1/2" />
-        </div>
-        <div className="max-w-6xl mx-auto relative z-10">
-          <div className="text-center mb-16">
-            <p
-              className="text-xs font-bold uppercase tracking-widest mb-3"
-              style={{ color: '#f59e0b' }}
-            >
-              Harga Transparan
-            </p>
-            <h2 className="text-3xl sm:text-5xl font-black text-white mb-4">Pilih Paket Anda</h2>
-            <p className="text-[#94a3b8] text-lg">Lisensi sekali bayar untuk selamanya · Tanpa biaya bulanan · Akses seumur hidup</p>
-          </div>
-
-          <div className="max-w-md mx-auto">
-            {PRICING.map((plan, i) => (
-              <div
-                key={i}
-                id={`pricing-${plan.name.replace(/\s+/g, '-').toLowerCase()}`}
-                className={`relative rounded-3xl p-8 border transition-all hover:-translate-y-2 duration-300 ${
-                  plan.popular
-                    ? 'pricing-popular border-transparent'
-                    : 'glass-card border-white/[0.07] hover:border-white/15'
-                }`}
-              >
-                {plan.popular && (
-                  <div className="absolute -top-4 left-0 right-0 flex justify-center">
-                    <span className="px-5 py-1.5 rounded-full bg-gradient-to-r from-violet-600 to-cyan-600 text-white text-xs font-black shadow-lg">
-                      ⭐ LIFETIME ACCESS
-                    </span>
-                  </div>
-                )}
-
-                <div className="mb-6">
-                  <h3 className="text-xl font-black text-white mb-1">{plan.name}</h3>
-                  <p className="text-[#64748b] text-sm">{plan.desc}</p>
-                </div>
-
-                <div className="mb-6">
-                  <span className="text-4xl font-black text-white">{plan.price}</span>
-                  {plan.period && <span className="text-[#94a3b8] text-sm ml-1">{plan.period}</span>}
-                </div>
-
-                <ul className="space-y-3 mb-8">
-                  {plan.features.map((f, j) => (
-                    <li key={j} className="flex items-start gap-2 text-sm text-[#94a3b8]">
-                      <span className="text-emerald-400 mt-0.5 shrink-0">✓</span>
-                      <span>{f}</span>
-                    </li>
-                  ))}
-                </ul>
-
-                <Link
-                  href="/studio"
-                  className={`block w-full text-center px-6 py-3.5 rounded-xl font-bold transition-all ${
-                    plan.popular
-                      ? 'btn-primary'
-                      : 'glass border border-white/10 text-white hover:border-white/20'
-                  }`}
-                >
-                  {plan.cta}
-                </Link>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* ── CTA FINAL ──────────────────────────────────── */}
       <section id="cta-final" className="py-28 px-4">
         <div className="max-w-4xl mx-auto">

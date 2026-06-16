@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { buildPrompt, MOCK_IMAGES, type StyleCategory } from '../../_lib/prompts'
+import { buildPrompt, translateCustomPrompt, type StyleCategory } from '../../_lib/prompts'
 
 export const runtime = 'nodejs'
 
@@ -25,12 +25,31 @@ export async function POST(request: Request) {
     const clientApiKey = request.headers.get('X-Gemini-Key')
     const GEMINI_API_KEY = clientApiKey || process.env.GEMINI_API_KEY
 
+    if (!GEMINI_API_KEY) {
+      return NextResponse.json(
+        { error: 'API Key Gemini belum diinput. Silakan buka Pengaturan (ikon ⚙️ di kanan atas) dan masukkan API Key Gemini Anda.' },
+        { status: 400 }
+      )
+    }
+
+
     let faceProfile = ''
     if (GEMINI_API_KEY && imageData) {
       faceProfile = await getFaceDescription(imageData, GEMINI_API_KEY)
     }
 
-    const englishPrompt = buildPrompt(style, option, customPrompt, {
+    let translatedCustomPrompt = customPrompt
+    if (style === 'custom' && GEMINI_API_KEY && customPrompt) {
+      const staticTranslated = translateCustomPrompt(customPrompt)
+      if (staticTranslated.startsWith('the subject styled as:')) {
+        const aiTranslated = await translatePromptWithAI(customPrompt, GEMINI_API_KEY)
+        if (aiTranslated) {
+          translatedCustomPrompt = `ai-translated: ${aiTranslated}`
+        }
+      }
+    }
+
+    const englishPrompt = buildPrompt(style, option, translatedCustomPrompt, {
       recreationClothes,
       eraClassicFilter,
       faceProfile
@@ -51,24 +70,46 @@ export async function POST(request: Request) {
           })
         }
 
-        const geminiRes = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp-image-generation:generateContent?key=${GEMINI_API_KEY}`,
-          {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              contents: [{ parts }],
-              generationConfig: {
-                responseModalities: ['IMAGE', 'TEXT'],
-              },
-            }),
-          },
-        )
+        const modelsToTry = [
+          'imagen-3.0-generate-002',
+          'gemini-2.0-flash-exp-image-generation',
+          'gemini-2.5-flash-image',
+          'gemini-3.0-flash-image',
+        ]
 
-        if (!geminiRes.ok) {
-          const errText = await geminiRes.text()
-          console.error('Gemini API error:', errText)
-          throw new Error('Gemini API error: ' + geminiRes.status)
+        let geminiRes: Response | null = null
+        let lastErrorText = ''
+
+        for (const model of modelsToTry) {
+          try {
+            const tempRes = await fetch(
+              `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`,
+              {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  contents: [{ parts }],
+                  generationConfig: {
+                    responseModalities: ['IMAGE', 'TEXT'],
+                  },
+                }),
+              },
+            )
+            if (tempRes.ok) {
+              geminiRes = tempRes
+              break
+            } else {
+              lastErrorText = await tempRes.text()
+              console.warn(`Model ${model} failed:`, lastErrorText)
+            }
+          } catch (e) {
+            console.warn(`Fetch for model ${model} threw error:`, e)
+            lastErrorText = e instanceof Error ? e.message : String(e)
+          }
+        }
+
+        if (!geminiRes) {
+          throw new Error(`Semua model generasi gambar gagal. Detail kesalahan terakhir: ${lastErrorText}`)
         }
 
         const geminiData = await geminiRes.json()
@@ -84,26 +125,22 @@ export async function POST(request: Request) {
             prompt: englishPrompt,
             mode: 'ai',
           })
+        } else {
+          throw new Error('Respons API tidak mengandung data gambar.')
         }
       } catch (aiError) {
-        console.error('AI generation failed, falling back to mock:', aiError)
+        console.error('AI generation failed:', aiError)
+        return NextResponse.json(
+          { error: `Gagal memproses gambar AI: ${aiError instanceof Error ? aiError.message : 'Kesalahan tidak diketahui'}` },
+          { status: 500 }
+        )
       }
+    } else {
+      return NextResponse.json(
+        { error: 'API Key Gemini belum diinput. Silakan buka Pengaturan (ikon ⚙️ di kanan atas) dan masukkan API Key Gemini Anda.' },
+        { status: 400 }
+      )
     }
-
-    // ── Mock / Demo Mode ─────────────────────────────────────
-    await simulateDelay(1500)
-    const mockPool = MOCK_IMAGES[style] ?? MOCK_IMAGES['formal']
-    const randomIndex = Math.floor(Math.random() * mockPool.length)
-    const mockImageUrl = mockPool[randomIndex] + `&t=${Date.now()}`
-
-    return NextResponse.json({
-      imageUrl: mockImageUrl,
-      prompt: englishPrompt,
-      mode: 'mock',
-      notice: GEMINI_API_KEY
-        ? 'AI generation failed. Showing demo result.'
-        : 'Demo mode — Tambahkan GEMINI_API_KEY di .env.local untuk hasil AI asli.',
-    })
   } catch (err) {
     console.error('Generate API error:', err)
     return NextResponse.json(
@@ -113,9 +150,6 @@ export async function POST(request: Request) {
   }
 }
 
-function simulateDelay(ms: number) {
-  return new Promise(resolve => setTimeout(resolve, ms))
-}
 
 async function getFaceDescription(imageData: string, apiKey: string): Promise<string> {
   try {
@@ -173,3 +207,50 @@ async function getFaceDescription(imageData: string, apiKey: string): Promise<st
     return ''
   }
 }
+
+async function translatePromptWithAI(indonesianPrompt: string, apiKey: string): Promise<string> {
+  try {
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{
+            parts: [
+              { text: "Translate and expand this Indonesian photo style or modification command into a descriptive English prompt for an AI image generator (focusing on clothing, background, setting, and atmosphere). Keep it descriptive but concise (under 25 words). Do not describe the person's face, body, or gender. Just translate the style request. Example: 'ganti jas hitam' -> 'wearing a formal black suit, studio background'. Command: '" + indonesianPrompt + "'" }
+            ]
+          }]
+        })
+      }
+    )
+
+    if (!res.ok) {
+      console.warn('Failed to translate prompt with gemini-2.0-flash, trying 1.5-flash fallback...')
+      const fallbackRes = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{
+              parts: [
+                { text: "Translate and expand this Indonesian photo style or modification command into a descriptive English prompt for an AI image generator (focusing on clothing, background, setting, and atmosphere). Keep it descriptive but concise (under 25 words). Do not describe the person's face, body, or gender. Just translate the style request. Example: 'ganti jas hitam' -> 'wearing a formal black suit, studio background'. Command: '" + indonesianPrompt + "'" }
+              ]
+            }]
+          })
+        }
+      )
+      if (!fallbackRes.ok) return ''
+      const data = await fallbackRes.json()
+      return data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() ?? ''
+    }
+
+    const data = await res.json()
+    return data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() ?? ''
+  } catch (err) {
+    console.error('translatePromptWithAI error:', err)
+    return ''
+  }
+}
+

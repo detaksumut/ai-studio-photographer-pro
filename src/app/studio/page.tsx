@@ -36,6 +36,7 @@ export default function StudioPage() {
   const [dragOver, setDragOver] = useState(false)
   const [generateError, setGenerateError] = useState<string | null>(null)
   const [showVersionHistory, setShowVersionHistory] = useState(false)
+  const [hasServerKey, setHasServerKey] = useState(false)
 
   // Liked generated image IDs
   const [likedImages, setLikedImages] = useState<string[]>([])
@@ -52,7 +53,26 @@ export default function StudioPage() {
   // Load license on mount
   useEffect(() => {
     setLicense(getLicenseStatus())
+    fetch('/api/config')
+      .then(res => res.json())
+      .then(data => setHasServerKey(!!data.hasServerKey))
+      .catch(() => setHasServerKey(false))
+
+    // Handle query parameters actions
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search)
+      const action = params.get('action')
+      if (action === 'camera') {
+        setShowCamera(true)
+      } else if (action === 'upload') {
+        setTimeout(() => {
+          fileInputRef.current?.click()
+        }, 150)
+      }
+    }
   }, [])
+
+
 
   const refreshLicense = useCallback(() => {
     setLicense(getLicenseStatus())
@@ -187,11 +207,13 @@ export default function StudioPage() {
   // Trial indicator
   const trialsLeft = license?.trialsRemaining ?? 3
   const isLicensed = license?.isLicensed ?? false
+  const hasGeminiKey = hasServerKey || !!license?.geminiApiKey
 
   return (
     <div className="min-h-screen bg-[#080b14] flex flex-col text-slate-100 selection:bg-violet-500/30 selection:text-white">
       {/* ── Top Nav ── */}
       <header className="glass border-b border-white/[0.06] sticky top-0 z-40">
+
         <div className="max-w-screen-2xl mx-auto px-4 h-14 flex items-center justify-between gap-4">
           <Link href="/" className="flex items-center gap-2 shrink-0" id="studio-logo">
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-cyan-500 flex items-center justify-center">
@@ -392,6 +414,20 @@ export default function StudioPage() {
 
         {/* ── CENTER/RIGHT: Prompt Input + Results ── */}
         <main className="flex-1 flex flex-col min-w-0 bg-[#080b14] lg:h-full lg:overflow-y-auto">
+          {!hasGeminiKey && (
+            <div className="bg-amber-500/10 border-b border-amber-500/20 px-4 py-3 text-amber-400 text-xs font-semibold flex items-center justify-between gap-3" id="demo-warning-banner">
+              <span className="flex items-center gap-2">
+                <span>⚠️</span>
+                <span><strong>API Key Gemini Belum Diinput:</strong> AI tidak dapat memproses foto sebelum Anda memasukkan API Key di menu Pengaturan (ikon ⚙️ di kanan atas).</span>
+              </span>
+              <button
+                onClick={() => setShowSettings(true)}
+                className="underline hover:text-white shrink-0 font-bold"
+              >
+                Atur Sekarang →
+              </button>
+            </div>
+          )}
 
           {/* Main Input Area */}
           <div className="p-4 sm:p-6 border-b border-white/[0.06] bg-[#090d18] space-y-4">
