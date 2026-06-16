@@ -71,23 +71,32 @@ export async function POST(request: Request) {
         }
 
         const modelsToTry = [
-          'imagen-3.0-generate-002',
-          'gemini-2.0-flash-exp-image-generation',
-          'gemini-2.5-flash-image',
-          'gemini-3.0-flash-image',
+          { name: 'imagen-3.0-generate-002', type: 'generateImages' },
+          { name: 'gemini-2.0-flash-exp-image-generation', type: 'generateContent' },
+          { name: 'gemini-2.5-flash-image', type: 'generateContent' },
+          { name: 'imagen-3.0-generate-002', type: 'predict' },
         ]
 
         let geminiRes: Response | null = null
         let lastErrorText = ''
-        let successfulModel = ''
+        let successfulModel = modelsToTry[0]
+        const errors: string[] = []
 
-        for (const model of modelsToTry) {
+        for (const item of modelsToTry) {
           try {
-            const isImagen = model.startsWith('imagen-')
-            const endpoint = isImagen ? 'predict' : 'generateContent'
-            
+            let endpoint = item.type
             let requestBody: any = {}
-            if (isImagen) {
+
+            if (endpoint === 'generateImages') {
+              requestBody = {
+                prompt: {
+                  text: englishPrompt
+                },
+                numberOfImages: 1,
+                outputMimeType: "image/jpeg",
+                aspectRatio: "2:3"
+              }
+            } else if (endpoint === 'predict') {
               requestBody = {
                 instances: [
                   {
@@ -104,13 +113,13 @@ export async function POST(request: Request) {
               requestBody = {
                 contents: [{ parts }],
                 generationConfig: {
-                  responseModalities: ['IMAGE', 'TEXT'],
+                  responseModalalities: ['IMAGE', 'TEXT'],
                 },
               }
             }
 
             const tempRes = await fetch(
-              `https://generativelanguage.googleapis.com/v1beta/models/${model}:${endpoint}?key=${GEMINI_API_KEY}`,
+              `https://generativelanguage.googleapis.com/v1beta/models/${item.name}:${endpoint}?key=${GEMINI_API_KEY}`,
               {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -120,25 +129,37 @@ export async function POST(request: Request) {
 
             if (tempRes.ok) {
               geminiRes = tempRes
-              successfulModel = model
+              successfulModel = item
               break
             } else {
               lastErrorText = await tempRes.text()
-              console.warn(`Model ${model} failed (${tempRes.status}):`, lastErrorText)
+              console.warn(`Model ${item.name} (${item.type}) failed (${tempRes.status}):`, lastErrorText)
+              errors.push(`${item.name} (${item.type}) -> ${tempRes.status}: ${lastErrorText}`)
             }
           } catch (e) {
-            console.warn(`Fetch for model ${model} threw error:`, e)
-            lastErrorText = e instanceof Error ? e.message : String(e)
+            const msg = e instanceof Error ? e.message : String(e)
+            console.warn(`Fetch for model ${item.name} (${item.type}) threw error:`, e)
+            errors.push(`${item.name} (${item.type}) error: ${msg}`)
+            lastErrorText = msg
           }
         }
 
         if (!geminiRes) {
-          throw new Error(`Semua model generasi gambar gagal. Detail kesalahan terakhir: ${lastErrorText}`)
+          throw new Error(`Semua model generasi gambar gagal.\n\nDetail:\n${errors.join('\n')}`)
         }
 
         const geminiData = await geminiRes.json()
 
-        if (successfulModel.startsWith('imagen-')) {
+        if (successfulModel.type === 'generateImages') {
+          const base64Data = geminiData?.generatedImages?.[0]?.image?.imageBytes
+          if (base64Data) {
+            return NextResponse.json({
+              imageUrl: `data:image/jpeg;base64,${base64Data}`,
+              prompt: englishPrompt,
+              mode: 'ai',
+            })
+          }
+        } else if (successfulModel.type === 'predict') {
           const base64Data = geminiData?.predictions?.[0]?.bytesBase64Encoded
           const mimeType = geminiData?.predictions?.[0]?.mimeType || 'image/jpeg'
           if (base64Data) {
