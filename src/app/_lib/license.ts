@@ -81,7 +81,8 @@ export function activateLicense(key: string): boolean {
 }
 
 export function saveGeminiKey(key: string): void {
-  safeSet(KEYS.GEMINI_KEY, key.trim())
+  const cleanKey = key.replace(/[^\x20-\x7E]/g, '').trim()
+  safeSet(KEYS.GEMINI_KEY, cleanKey)
 }
 
 export function clearLicense(): void {

@@ -138,7 +138,8 @@ export default function StudioPage() {
     setGenerateError(null)
 
     try {
-      const geminiKey = currentLicense.geminiApiKey
+      const rawKey = currentLicense.geminiApiKey
+      const geminiKey = rawKey ? rawKey.replace(/[^\x20-\x7E]/g, '').trim() : null
 
       const res = await fetch('/api/generate', {
         method: 'POST',
