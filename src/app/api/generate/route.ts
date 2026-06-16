@@ -104,7 +104,7 @@ export async function POST(request: Request) {
                 },
                 numberOfImages: 1,
                 outputMimeType: "image/jpeg",
-                aspectRatio: "2:3"
+                aspectRatio: "3:4"
               }
             } else if (endpoint === 'predict') {
               requestBody = {
@@ -115,7 +115,7 @@ export async function POST(request: Request) {
                 ],
                 parameters: {
                   sampleCount: 1,
-                  aspectRatio: "2:3",
+                  aspectRatio: "3:4",
                   outputMimeType: "image/jpeg"
                 }
               }
