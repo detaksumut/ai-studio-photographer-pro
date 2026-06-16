@@ -79,28 +79,52 @@ export async function POST(request: Request) {
 
         let geminiRes: Response | null = null
         let lastErrorText = ''
+        let successfulModel = ''
 
         for (const model of modelsToTry) {
           try {
+            const isImagen = model.startsWith('imagen-')
+            const endpoint = isImagen ? 'predict' : 'generateContent'
+            
+            let requestBody: any = {}
+            if (isImagen) {
+              requestBody = {
+                instances: [
+                  {
+                    prompt: englishPrompt
+                  }
+                ],
+                parameters: {
+                  sampleCount: 1,
+                  aspectRatio: "2:3",
+                  outputMimeType: "image/jpeg"
+                }
+              }
+            } else {
+              requestBody = {
+                contents: [{ parts }],
+                generationConfig: {
+                  responseModalities: ['IMAGE', 'TEXT'],
+                },
+              }
+            }
+
             const tempRes = await fetch(
-              `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`,
+              `https://generativelanguage.googleapis.com/v1beta/models/${model}:${endpoint}?key=${GEMINI_API_KEY}`,
               {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  contents: [{ parts }],
-                  generationConfig: {
-                    responseModalities: ['IMAGE', 'TEXT'],
-                  },
-                }),
-              },
+                body: JSON.stringify(requestBody),
+              }
             )
+
             if (tempRes.ok) {
               geminiRes = tempRes
+              successfulModel = model
               break
             } else {
               lastErrorText = await tempRes.text()
-              console.warn(`Model ${model} failed:`, lastErrorText)
+              console.warn(`Model ${model} failed (${tempRes.status}):`, lastErrorText)
             }
           } catch (e) {
             console.warn(`Fetch for model ${model} threw error:`, e)
@@ -113,21 +137,34 @@ export async function POST(request: Request) {
         }
 
         const geminiData = await geminiRes.json()
-        const candidate = geminiData?.candidates?.[0]
-        const imagePart = candidate?.content?.parts?.find(
-          (p: { inlineData?: { mimeType?: string; data?: string } }) => p.inlineData?.data,
-        )
 
-        if (imagePart?.inlineData?.data) {
-          const { mimeType, data } = imagePart.inlineData
-          return NextResponse.json({
-            imageUrl: `data:${mimeType};base64,${data}`,
-            prompt: englishPrompt,
-            mode: 'ai',
-          })
+        if (successfulModel.startsWith('imagen-')) {
+          const base64Data = geminiData?.predictions?.[0]?.bytesBase64Encoded
+          const mimeType = geminiData?.predictions?.[0]?.mimeType || 'image/jpeg'
+          if (base64Data) {
+            return NextResponse.json({
+              imageUrl: `data:${mimeType};base64,${base64Data}`,
+              prompt: englishPrompt,
+              mode: 'ai',
+            })
+          }
         } else {
-          throw new Error('Respons API tidak mengandung data gambar.')
+          const candidate = geminiData?.candidates?.[0]
+          const imagePart = candidate?.content?.parts?.find(
+            (p: { inlineData?: { mimeType?: string; data?: string } }) => p.inlineData?.data,
+          )
+
+          if (imagePart?.inlineData?.data) {
+            const { mimeType, data } = imagePart.inlineData
+            return NextResponse.json({
+              imageUrl: `data:${mimeType};base64,${data}`,
+              prompt: englishPrompt,
+              mode: 'ai',
+            })
+          }
         }
+
+        throw new Error('Respons API tidak mengandung data gambar.')
       } catch (aiError) {
         console.error('AI generation failed:', aiError)
         return NextResponse.json(
@@ -135,6 +172,7 @@ export async function POST(request: Request) {
           { status: 500 }
         )
       }
+
     } else {
       return NextResponse.json(
         { error: 'API Key Gemini belum diinput. Silakan buka Pengaturan (ikon ⚙️ di kanan atas) dan masukkan API Key Gemini Anda.' },
