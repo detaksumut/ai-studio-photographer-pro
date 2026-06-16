@@ -112,11 +112,11 @@ export default function CameraCapture({ onCapture, onClose }: Props) {
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/85 backdrop-blur-sm p-4 animate-fade-in"
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 sm:bg-black/80 sm:backdrop-blur-sm p-0 sm:p-4 animate-fade-in"
       onClick={(e) => { if (e.target === e.currentTarget) { stopStream(); onClose() } }}
       id="camera-modal"
     >
-      <div className="glass-card border border-white/10 rounded-3xl overflow-hidden w-full max-w-md h-[80vh] sm:h-[75vh] flex flex-col animate-scale-in">
+      <div className="w-full h-full sm:w-full sm:max-w-lg sm:h-[85vh] sm:rounded-3xl border-0 sm:border border-white/10 bg-[#080b14] sm:bg-[#0b0f1a]/90 sm:backdrop-blur-md overflow-hidden flex flex-col animate-scale-in">
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.06] shrink-0 bg-[#0b0f1a]">
           <div>
@@ -134,8 +134,8 @@ export default function CameraCapture({ onCapture, onClose }: Props) {
           </button>
         </div>
 
-        {/* Camera View - maximized dynamic portrait height */}
-        <div className="relative bg-black flex-1 min-h-0 w-full overflow-hidden">
+        {/* Camera View - maximized dynamic 2:3 aspect container */}
+        <div className="flex-1 min-h-0 w-full flex items-center justify-center p-3 sm:p-4 bg-black/40 relative">
           {error ? (
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-center p-6 bg-[#0f1524]">
               <div className="text-4xl">🚫</div>
@@ -148,7 +148,7 @@ export default function CameraCapture({ onCapture, onClose }: Props) {
               </button>
             </div>
           ) : (
-            <>
+            <div className="relative aspect-[2/3] w-auto h-auto max-w-full max-h-full overflow-hidden rounded-2xl bg-black border border-white/10 shadow-2xl flex items-center justify-center">
               {/* Video element */}
               <video
                 ref={videoRef}
@@ -173,7 +173,7 @@ export default function CameraCapture({ onCapture, onClose }: Props) {
 
               {/* Focus ring overlay */}
               {ready && (
-                <div className="absolute inset-0 border-2 border-violet-500/20 rounded-none pointer-events-none">
+                <div className="absolute inset-0 border-2 border-violet-500/20 rounded-2xl pointer-events-none">
                   {/* Corner brackets */}
                   {['top-4 left-4', 'top-4 right-4', 'bottom-4 left-4', 'bottom-4 right-4'].map((pos, i) => (
                     <div key={i} className={`absolute ${pos} w-6 h-6 border-violet-400 border-opacity-70
@@ -185,7 +185,7 @@ export default function CameraCapture({ onCapture, onClose }: Props) {
                   ))}
                 </div>
               )}
-            </>
+            </div>
           )}
         </div>
 
