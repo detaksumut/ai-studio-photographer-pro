@@ -422,11 +422,11 @@ export default function HomePage() {
             <p className="text-[#94a3b8] text-lg">Lisensi sekali bayar untuk selamanya · Tanpa biaya bulanan · Akses seumur hidup</p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-6 items-start">
+          <div className="max-w-md mx-auto">
             {PRICING.map((plan, i) => (
               <div
                 key={i}
-                id={`pricing-${plan.name.toLowerCase()}`}
+                id={`pricing-${plan.name.replace(/\s+/g, '-').toLowerCase()}`}
                 className={`relative rounded-3xl p-8 border transition-all hover:-translate-y-2 duration-300 ${
                   plan.popular
                     ? 'pricing-popular border-transparent'
@@ -436,7 +436,7 @@ export default function HomePage() {
                 {plan.popular && (
                   <div className="absolute -top-4 left-0 right-0 flex justify-center">
                     <span className="px-5 py-1.5 rounded-full bg-gradient-to-r from-violet-600 to-cyan-600 text-white text-xs font-black shadow-lg">
-                      ⭐ PALING POPULER
+                      ⭐ LIFETIME ACCESS
                     </span>
                   </div>
                 )}

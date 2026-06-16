@@ -41,7 +41,7 @@ export default function SettingsPanel({ onClose, onSettingsChanged }: Props) {
     }
     if (!validateLicenseFormat(trimmed)) {
       setLicenseStatus('error')
-      setLicenseError('Format salah. Contoh: AIPRO-XXXX-XXXX-XXXX')
+      setLicenseError('Kode lisensi tidak valid.')
       return
     }
     const ok = activateLicense(trimmed)
@@ -197,8 +197,7 @@ export default function SettingsPanel({ onClose, onSettingsChanged }: Props) {
               </a>
             </div>
             <p className="text-[#64748b] text-xs mb-3">
-              Masukkan license key yang diterima setelah pembelian.
-              Format: <span className="text-violet-400 font-mono text-[11px]">AIPRO-XXXX-XXXX-XXXX</span>
+              Masukkan kode lisensi yang diterima setelah pembelian.
             </p>
             <input
               id="settings-license-key"
@@ -208,8 +207,8 @@ export default function SettingsPanel({ onClose, onSettingsChanged }: Props) {
                 setLicenseKey(e.target.value)
                 setLicenseStatus('idle')
               }}
-              placeholder="AIPRO-XXXX-XXXX-XXXX"
-              className={`w-full glass border rounded-xl px-4 py-2.5 text-white font-mono text-sm placeholder-[#64748b] focus:outline-none transition-colors uppercase tracking-wider ${
+              placeholder="Masukkan Kode Lisensi Anda"
+              className={`w-full glass border rounded-xl px-4 py-2.5 text-white text-sm placeholder-[#64748b] focus:outline-none transition-colors uppercase tracking-wider ${
                 licenseStatus === 'error'
                   ? 'border-red-500/50'
                   : licenseStatus === 'success'

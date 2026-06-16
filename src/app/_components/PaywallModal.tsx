@@ -11,29 +11,13 @@ interface Props {
 
 const PRICING = [
   {
-    name: 'Basic',
-    price: 'Rp 149.000',
+    name: 'Lisensi Premium Lifetime',
+    price: 'Rp 20.000',
     period: 'sekali bayar',
-    generations: '100 foto total (Akses Selamanya)',
-    color: 'border-blue-500/30',
-    badge: '',
-  },
-  {
-    name: 'Pro',
-    price: 'Rp 399.000',
-    period: 'sekali bayar',
-    generations: '1.000 foto total (Akses Selamanya)',
+    generations: 'Akses Penuh Selamanya (Tanpa Batas)',
     color: 'border-violet-500/50',
-    badge: '⭐ POPULER',
-  },
-  {
-    name: 'Enterprise',
-    price: 'Custom',
-    period: 'sekali bayar',
-    generations: 'Kuota khusus perusahaan',
-    color: 'border-gold/30',
-    badge: '',
-  },
+    badge: '⭐ LIFETIME ACCESS',
+  }
 ]
 
 export default function PaywallModal({ trialsUsed, onLicenseActivated, onClose }: Props) {
@@ -46,12 +30,12 @@ export default function PaywallModal({ trialsUsed, onLicenseActivated, onClose }
     const trimmed = licenseInput.trim()
     if (!trimmed) {
       setStatus('error')
-      setErrorMsg('Masukkan license key terlebih dahulu.')
+      setErrorMsg('Masukkan kode lisensi terlebih dahulu.')
       return
     }
     if (!validateLicenseFormat(trimmed)) {
       setStatus('error')
-      setErrorMsg('Format tidak valid. Format yang benar: AIPRO-XXXX-XXXX-XXXX')
+      setErrorMsg('Kode lisensi tidak valid.')
       return
     }
     const ok = activateLicense(trimmed)
@@ -63,7 +47,7 @@ export default function PaywallModal({ trialsUsed, onLicenseActivated, onClose }
       }, 1500)
     } else {
       setStatus('error')
-      setErrorMsg('License key tidak valid. Pastikan key yang Anda masukkan benar.')
+      setErrorMsg('Kode lisensi tidak terdaftar.')
     }
   }
 
@@ -117,7 +101,7 @@ export default function PaywallModal({ trialsUsed, onLicenseActivated, onClose }
               {PRICING.map(plan => (
                 <div
                   key={plan.name}
-                  className={`relative rounded-2xl glass-card border ${plan.color} p-4 flex items-center justify-between`}
+                  className={`relative rounded-2xl glass-card border ${plan.color} p-5 flex items-center justify-between`}
                 >
                   {plan.badge && (
                     <span className="absolute -top-2.5 left-4 px-2 py-0.5 rounded-full bg-gradient-to-r from-violet-600 to-cyan-600 text-white text-[10px] font-black">
@@ -126,10 +110,10 @@ export default function PaywallModal({ trialsUsed, onLicenseActivated, onClose }
                   )}
                   <div>
                     <p className="text-white font-bold">{plan.name}</p>
-                    <p className="text-[#64748b] text-xs">{plan.generations}</p>
+                    <p className="text-[#64748b] text-xs mt-0.5">{plan.generations}</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-white font-black">{plan.price}</p>
+                    <p className="text-white font-black text-lg">{plan.price}</p>
                     <p className="text-[#64748b] text-xs">{plan.period}</p>
                   </div>
                 </div>
@@ -141,9 +125,9 @@ export default function PaywallModal({ trialsUsed, onLicenseActivated, onClose }
               <p className="text-white font-bold text-sm mb-2">📋 Cara Beli:</p>
               <ol className="space-y-1.5 text-[#94a3b8] text-xs list-none">
                 <li>1️⃣ Hubungi WhatsApp: <strong>0813-4373-7367</strong></li>
-                <li>2️⃣ Lakukan pembayaran sesuai paket</li>
-                <li>3️⃣ Terima license key via WhatsApp</li>
-                <li>4️⃣ Masukkan key di tab &quot;Punya Lisensi?&quot;</li>
+                <li>2️⃣ Lakukan pembayaran sesuai paket (Rp 20.000 sekali bayar)</li>
+                <li>3️⃣ Terima kode lisensi via WhatsApp</li>
+                <li>4️⃣ Masukkan kode lisensi di tab &quot;Punya Lisensi?&quot;</li>
               </ol>
             </div>
 
@@ -168,16 +152,15 @@ export default function PaywallModal({ trialsUsed, onLicenseActivated, onClose }
           </div>
         ) : (
           <div className="p-6">
-            <h3 className="text-white font-bold mb-1">Aktifkan License Key</h3>
+            <h3 className="text-white font-bold mb-1">Aktifkan Kode Lisensi</h3>
             <p className="text-[#94a3b8] text-xs mb-5">
-              Masukkan license key yang Anda terima setelah pembelian.
-              Format: <span className="text-violet-400 font-mono">AIPRO-XXXX-XXXX-XXXX</span>
+              Masukkan kode lisensi yang Anda terima setelah pembayaran.
             </p>
 
             {/* Key Input */}
             <div className="mb-4">
               <label className="block text-xs font-bold text-[#94a3b8] uppercase tracking-widest mb-2">
-                License Key
+                Kode Lisensi
               </label>
               <input
                 id="license-key-input"
@@ -187,8 +170,8 @@ export default function PaywallModal({ trialsUsed, onLicenseActivated, onClose }
                   setLicenseInput(e.target.value)
                   setStatus('idle')
                 }}
-                placeholder="AIPRO-XXXX-XXXX-XXXX"
-                className={`w-full glass border rounded-xl px-4 py-3 text-white font-mono text-sm placeholder-[#64748b] focus:outline-none transition-colors uppercase tracking-wider ${
+                placeholder="Masukkan Kode Lisensi Anda"
+                className={`w-full glass border rounded-xl px-4 py-3 text-white text-sm placeholder-[#64748b] focus:outline-none transition-colors uppercase tracking-wider ${
                   status === 'error'
                     ? 'border-red-500/50 focus:border-red-500'
                     : status === 'success'
@@ -201,7 +184,7 @@ export default function PaywallModal({ trialsUsed, onLicenseActivated, onClose }
                 <p className="text-red-400 text-xs mt-1.5">⚠️ {errorMsg}</p>
               )}
               {status === 'success' && (
-                <p className="text-emerald-400 text-xs mt-1.5">✅ License berhasil diaktifkan!</p>
+                <p className="text-emerald-400 text-xs mt-1.5">✅ Lisensi berhasil diaktifkan!</p>
               )}
             </div>
 
@@ -216,7 +199,7 @@ export default function PaywallModal({ trialsUsed, onLicenseActivated, onClose }
 
             <p className="text-[#64748b] text-xs text-center mt-4">
               Belum punya lisensi?{' '}
-              <button onClick={() => setActiveTab('paywall')} className="text-violet-400 hover:text-violet-300">
+              <button onClick={() => setActiveTab('paywall')} className="text-violet-400 hover:text-violet-300 font-semibold">
                 Beli sekarang →
               </button>
             </p>
