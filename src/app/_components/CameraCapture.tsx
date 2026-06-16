@@ -60,16 +60,46 @@ export default function CameraCapture({ onCapture, onClose }: Props) {
     if (!video) return
 
     const canvas = document.createElement('canvas')
-    canvas.width = video.videoWidth
-    canvas.height = video.videoHeight
+    
+    // We want the final image to be portrait (2:3 aspect ratio)
+    // to match what the user sees in the object-cover preview
+    const targetAspect = 2 / 3
+    
+    const sourceWidth = video.videoWidth
+    const sourceHeight = video.videoHeight
+    
+    let drawWidth = sourceWidth
+    let drawHeight = sourceHeight
+    let sx = 0
+    let sy = 0
+
+    if (sourceWidth / sourceHeight > targetAspect) {
+      // Stream is wider than 2:3, crop sides
+      drawWidth = sourceHeight * targetAspect
+      sx = (sourceWidth - drawWidth) / 2
+    } else {
+      // Stream is taller than 2:3, crop top/bottom
+      drawHeight = sourceWidth / targetAspect
+      sy = (sourceHeight - drawHeight) / 2
+    }
+
+    // Capture at high resolution 2:3 portrait format
+    canvas.width = 1200
+    canvas.height = 1800
+
     const ctx = canvas.getContext('2d')!
 
-    // Mirror front camera horizontally (natural selfie feel)
+    // Mirror front camera horizontally
     if (facingMode === 'user') {
       ctx.translate(canvas.width, 0)
       ctx.scale(-1, 1)
     }
-    ctx.drawImage(video, 0, 0)
+
+    ctx.drawImage(
+      video,
+      sx, sy, drawWidth, drawHeight, // crop coordinates
+      0, 0, canvas.width, canvas.height // output
+    )
 
     const dataUrl = canvas.toDataURL('image/jpeg', 0.92)
     stopStream()
@@ -82,13 +112,13 @@ export default function CameraCapture({ onCapture, onClose }: Props) {
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-fade-in"
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/85 backdrop-blur-sm p-4 animate-fade-in"
       onClick={(e) => { if (e.target === e.currentTarget) { stopStream(); onClose() } }}
       id="camera-modal"
     >
-      <div className="glass-card border border-white/10 rounded-3xl overflow-hidden w-full max-w-lg animate-scale-in">
+      <div className="glass-card border border-white/10 rounded-3xl overflow-hidden w-full max-w-md h-[80vh] sm:h-[75vh] flex flex-col animate-scale-in">
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.06]">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.06] shrink-0 bg-[#0b0f1a]">
           <div>
             <h2 className="text-white font-bold">📸 Kamera</h2>
             <p className="text-[#64748b] text-xs mt-0.5">
@@ -104,8 +134,8 @@ export default function CameraCapture({ onCapture, onClose }: Props) {
           </button>
         </div>
 
-        {/* Camera View */}
-        <div className="relative bg-black aspect-[2/3] max-h-[50vh] max-w-[340px] mx-auto rounded-2xl overflow-hidden border border-white/5 shadow-inner">
+        {/* Camera View - maximized dynamic portrait height */}
+        <div className="relative bg-black flex-1 min-h-0 w-full overflow-hidden">
           {error ? (
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-center p-6 bg-[#0f1524]">
               <div className="text-4xl">🚫</div>
@@ -143,9 +173,9 @@ export default function CameraCapture({ onCapture, onClose }: Props) {
 
               {/* Focus ring overlay */}
               {ready && (
-                <div className="absolute inset-0 border-2 border-violet-500/30 rounded-none pointer-events-none">
+                <div className="absolute inset-0 border-2 border-violet-500/20 rounded-none pointer-events-none">
                   {/* Corner brackets */}
-                  {['top-3 left-3', 'top-3 right-3', 'bottom-3 left-3', 'bottom-3 right-3'].map((pos, i) => (
+                  {['top-4 left-4', 'top-4 right-4', 'bottom-4 left-4', 'bottom-4 right-4'].map((pos, i) => (
                     <div key={i} className={`absolute ${pos} w-6 h-6 border-violet-400 border-opacity-70
                       ${i === 0 ? 'border-t-2 border-l-2' : ''}
                       ${i === 1 ? 'border-t-2 border-r-2' : ''}
@@ -160,7 +190,7 @@ export default function CameraCapture({ onCapture, onClose }: Props) {
         </div>
 
         {/* Controls */}
-        <div className="flex items-center justify-between px-6 py-5 gap-4">
+        <div className="flex items-center justify-between px-6 py-4 gap-4 shrink-0 bg-[#070a12]">
           {/* Switch camera */}
           {hasMultipleCameras ? (
             <button
@@ -192,12 +222,12 @@ export default function CameraCapture({ onCapture, onClose }: Props) {
           {/* Flip label */}
           <div className="w-12 text-center">
             <span className="text-[#64748b] text-[10px]">
-              {facingMode === 'user' ? '🤳' : '📷'}
+              {facingMode === 'user' ? '🤳 Depan' : '📷 Belakang'}
             </span>
           </div>
         </div>
 
-        <p className="text-center text-[#64748b] text-xs pb-4">
+        <p className="text-center text-[#64748b] text-[11px] pb-3 shrink-0 bg-[#070a12]">
           Klik tombol untuk mengambil foto
         </p>
       </div>

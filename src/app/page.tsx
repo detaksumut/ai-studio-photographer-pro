@@ -105,25 +105,25 @@ const STEPS = [
 const PRICING = [
   {
     name: 'Basic',
-    price: 'Rp 99.000',
-    period: '/bulan',
-    desc: 'Untuk fotografer pemula',
-    features: ['100 foto/bulan', '7 menu gaya', 'HD download (2MP)', 'Email support', 'Version history 3x'],
+    price: 'Rp 149.000',
+    period: ' / sekali bayar',
+    desc: 'Lisensi selamanya untuk pemula',
+    features: ['100 foto total', '7 menu gaya', 'HD download (2MP)', 'Akses selamanya', 'Version history 3x'],
     cta: 'Mulai Basic',
     popular: false,
   },
   {
     name: 'Pro',
-    price: 'Rp 299.000',
-    period: '/bulan',
-    desc: 'Studio foto profesional',
+    price: 'Rp 399.000',
+    period: ' / sekali bayar',
+    desc: 'Studio foto profesional lifetime',
     features: [
-      '1.000 foto/bulan',
+      '1.000 foto total',
       'Semua menu + Custom AI',
       '4K download (8MP)',
       'Face Lock Technology',
       'Version history unlimited',
-      'Priority support',
+      'Akses selamanya',
     ],
     cta: 'Mulai Pro',
     popular: true,
@@ -131,14 +131,14 @@ const PRICING = [
   {
     name: 'Enterprise',
     price: 'Custom',
-    period: '',
+    period: ' / sekali bayar',
     desc: 'Solusi untuk bisnis besar',
     features: [
       'Unlimited foto',
       'API access',
       'White-label',
       '8K download',
-      'Dedicated account manager',
+      'Akses selamanya',
       'Custom integrasi',
     ],
     cta: 'Hubungi Sales',
@@ -419,7 +419,7 @@ export default function HomePage() {
               Harga Transparan
             </p>
             <h2 className="text-3xl sm:text-5xl font-black text-white mb-4">Pilih Paket Anda</h2>
-            <p className="text-[#94a3b8] text-lg">Mulai gratis · Upgrade kapan saja · Batalkan kapan saja</p>
+            <p className="text-[#94a3b8] text-lg">Lisensi sekali bayar untuk selamanya · Tanpa biaya bulanan · Akses seumur hidup</p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-6 items-start">
