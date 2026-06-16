@@ -79,8 +79,9 @@ export async function POST(request: Request) {
         }
 
         const modelsToTry = [
+          { name: 'imagen-4.0-generate-001', type: 'generateImages' },
+          { name: 'imagen-4.0-fast-generate-001', type: 'generateImages' },
           { name: 'imagen-3.0-generate-002', type: 'generateImages' },
-          { name: 'gemini-2.0-flash-exp-image-generation', type: 'generateContent' },
           { name: 'gemini-2.5-flash-image', type: 'generateContent' },
           { name: 'imagen-3.0-generate-002', type: 'predict' },
         ]
