@@ -10,6 +10,7 @@ import {
   getLicenseStatus,
   incrementTrialCount,
   type LicenseStatus,
+  TRIAL_LIMIT,
 } from '../_lib/license'
 import CameraCapture from '../_components/CameraCapture'
 import PaywallModal from '../_components/PaywallModal'
@@ -150,6 +151,8 @@ export default function StudioPage() {
           style: 'custom',
           option: null,
           customPrompt: promptText,
+          isLicensed: currentLicense.isLicensed,
+          trialsUsed: currentLicense.trialsUsed,
         }),
       })
 
@@ -205,9 +208,14 @@ export default function StudioPage() {
   }
 
   // Trial indicator
-  const trialsLeft = license?.trialsRemaining ?? 3
+  const trialsLeft = license?.trialsRemaining ?? TRIAL_LIMIT
   const isLicensed = license?.isLicensed ?? false
-  const hasGeminiKey = hasServerKey || !!license?.geminiApiKey
+  const trialsUsed = license?.trialsUsed ?? 0
+  const hasClientKey = !!license?.geminiApiKey
+
+  // Server key is usable ONLY if unlicensed and trialsUsed is less than 5.
+  const isServerKeyUsable = hasServerKey && !isLicensed && trialsUsed < 5
+  const hasGeminiKey = hasClientKey || isServerKeyUsable
 
   return (
     <div className="min-h-screen bg-[#080b14] flex flex-col text-slate-100 selection:bg-violet-500/30 selection:text-white">
@@ -418,7 +426,15 @@ export default function StudioPage() {
             <div className="bg-amber-500/10 border-b border-amber-500/20 px-4 py-3 text-amber-400 text-xs font-semibold flex items-center justify-between gap-3" id="demo-warning-banner">
               <span className="flex items-center gap-2">
                 <span>⚠️</span>
-                <span><strong>API Key Gemini Belum Diinput:</strong> AI tidak dapat memproses foto sebelum Anda memasukkan API Key di menu Pengaturan (ikon ⚙️ di kanan atas).</span>
+                <span>
+                  {trialsUsed >= 5 && !isLicensed ? (
+                    <><strong>Uji Coba Habis:</strong> Uji coba gratis 5 kali selesai. Silakan beli lisensi dan masukkan API Key Gemini baru Anda di menu Pengaturan (ikon ⚙️ di kanan atas).</>
+                  ) : isLicensed ? (
+                    <><strong>Lisensi Aktif:</strong> Silakan masukkan API Key Gemini Anda sendiri di menu Pengaturan (ikon ⚙️ di kanan atas) untuk memproses foto.</>
+                  ) : (
+                    <><strong>API Key Gemini Belum Diinput:</strong> AI tidak dapat memproses foto sebelum Anda memasukkan API Key di menu Pengaturan (ikon ⚙️ di kanan atas).</>
+                  )}
+                </span>
               </span>
               <button
                 onClick={() => setShowSettings(true)}

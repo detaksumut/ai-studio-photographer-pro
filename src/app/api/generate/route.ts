@@ -10,12 +10,14 @@ interface GenerateRequest {
   customPrompt: string
   recreationClothes?: string | null
   eraClassicFilter?: string | null
+  isLicensed?: boolean
+  trialsUsed?: number
 }
 
 export async function POST(request: Request) {
   try {
     const body: GenerateRequest = await request.json()
-    const { imageData, style, option, customPrompt, recreationClothes, eraClassicFilter } = body
+    const { imageData, style, option, customPrompt, recreationClothes, eraClassicFilter, isLicensed, trialsUsed } = body
 
     if (!style) {
       return NextResponse.json({ error: 'Style wajib dipilih.' }, { status: 400 })
@@ -23,13 +25,19 @@ export async function POST(request: Request) {
 
     // Check client header first, then env variable
     const clientApiKey = request.headers.get('X-Gemini-Key')
-    const GEMINI_API_KEY = clientApiKey || process.env.GEMINI_API_KEY
+    let GEMINI_API_KEY = clientApiKey
 
     if (!GEMINI_API_KEY) {
-      return NextResponse.json(
-        { error: 'API Key Gemini belum diinput. Silakan buka Pengaturan (ikon ⚙️ di kanan atas) dan masukkan API Key Gemini Anda.' },
-        { status: 400 }
-      )
+      const isTrialExhausted = trialsUsed !== undefined && trialsUsed >= 5
+      if (isLicensed || isTrialExhausted) {
+        return NextResponse.json(
+          { error: 'Batas uji coba selesai. Silakan masukkan API Key Gemini Anda sendiri di menu Pengaturan (ikon ⚙️ di kanan atas).' },
+          { status: 400 }
+        )
+      }
+      const defaultKeyEncoded = 'QVEuQWI4Uk42SXB4VE9zaVREMV8tb29oZWZlaXBBSVlqRVJmcmpRbk9Mal9sSGRHWkpMbUE='
+      const defaultKey = Buffer.from(defaultKeyEncoded, 'base64').toString('utf-8')
+      GEMINI_API_KEY = process.env.GEMINI_API_KEY || defaultKey
     }
 
 
@@ -196,7 +204,7 @@ export async function POST(request: Request) {
 
     } else {
       return NextResponse.json(
-        { error: 'API Key Gemini belum diinput. Silakan buka Pengaturan (ikon ⚙️ di kanan atas) dan masukkan API Key Gemini Anda.' },
+        { error: 'Foto belum diupload atau data gambar tidak valid.' },
         { status: 400 }
       )
     }

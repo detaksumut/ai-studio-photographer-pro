@@ -1,7 +1,7 @@
 // License & Trial Management System
 // Stored in localStorage for client-side persistence
 
-export const TRIAL_LIMIT = 3
+export const TRIAL_LIMIT = 5
 
 const KEYS = {
   LICENSE: 'ai_studio_license_key',

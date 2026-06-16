@@ -7,6 +7,7 @@ import {
   saveGeminiKey,
   clearLicense,
   validateLicenseFormat,
+  TRIAL_LIMIT,
 } from '../_lib/license'
 
 interface Props {
@@ -120,7 +121,7 @@ export default function SettingsPanel({ onClose, onSettingsChanged }: Props) {
                 <div className="mt-2 h-1.5 rounded-full bg-white/10 overflow-hidden">
                   <div
                     className="h-full rounded-full bg-gradient-to-r from-amber-500 to-orange-500 transition-all"
-                    style={{ width: `${(status.trialsUsed / 3) * 100}%` }}
+                    style={{ width: `${(status.trialsUsed / TRIAL_LIMIT) * 100}%` }}
                   />
                 </div>
               </div>
@@ -246,7 +247,7 @@ export default function SettingsPanel({ onClose, onSettingsChanged }: Props) {
 
           {/* ── Info Box ── */}
           <div className="glass-card border border-white/[0.06] rounded-2xl p-4 text-xs text-[#64748b] space-y-1">
-            <p>💡 <strong className="text-white">Demo Mode</strong> — 3 generasi gratis tanpa API key</p>
+            <p>💡 <strong className="text-white">Demo Mode</strong> — {TRIAL_LIMIT} generasi gratis tanpa API key</p>
             <p>🤖 <strong className="text-white">AI Mode</strong> — Gunakan Gemini API key Anda sendiri</p>
             <p>🔓 <strong className="text-white">Licensed</strong> — Akses penuh sesuai paket</p>
           </div>

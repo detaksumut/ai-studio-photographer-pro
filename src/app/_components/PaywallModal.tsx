@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { activateLicense, validateLicenseFormat, TRIAL_LIMIT } from '../_lib/license'
+import { activateLicense, validateLicenseFormat, TRIAL_LIMIT, saveGeminiKey, getLicenseStatus } from '../_lib/license'
 
 interface Props {
   trialsUsed: number
@@ -21,25 +21,36 @@ const PRICING = [
 ]
 
 export default function PaywallModal({ trialsUsed, onLicenseActivated, onClose }: Props) {
+  const licenseStatus = getLicenseStatus()
   const [licenseInput, setLicenseInput] = useState('')
+  const [geminiApiKeyInput, setGeminiApiKeyInput] = useState(licenseStatus.geminiApiKey ?? '')
   const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle')
   const [errorMsg, setErrorMsg] = useState('')
   const [activeTab, setActiveTab] = useState<'paywall' | 'activate'>('paywall')
 
   const handleActivate = () => {
-    const trimmed = licenseInput.trim()
-    if (!trimmed) {
+    const trimmedLicense = licenseInput.trim()
+    const trimmedGemini = geminiApiKeyInput.trim()
+
+    if (!trimmedLicense) {
       setStatus('error')
       setErrorMsg('Masukkan kode lisensi terlebih dahulu.')
       return
     }
-    if (!validateLicenseFormat(trimmed)) {
+    if (!validateLicenseFormat(trimmedLicense)) {
       setStatus('error')
-      setErrorMsg('Kode lisensi tidak valid.')
+      setErrorMsg('Kode lisensi tidak valid. Format: AIPRO-XXXX-XXXX-XXXX')
       return
     }
-    const ok = activateLicense(trimmed)
+    if (!trimmedGemini) {
+      setStatus('error')
+      setErrorMsg('Masukkan API Key Gemini baru terlebih dahulu.')
+      return
+    }
+
+    const ok = activateLicense(trimmedLicense)
     if (ok) {
+      saveGeminiKey(trimmedGemini)
       setStatus('success')
       setTimeout(() => {
         onLicenseActivated()
@@ -152,12 +163,12 @@ export default function PaywallModal({ trialsUsed, onLicenseActivated, onClose }
           </div>
         ) : (
           <div className="p-6">
-            <h3 className="text-white font-bold mb-1">Aktifkan Kode Lisensi</h3>
+            <h3 className="text-white font-bold mb-1">Aktifkan Lisensi & API Key</h3>
             <p className="text-[#94a3b8] text-xs mb-5">
-              Masukkan kode lisensi yang Anda terima setelah pembayaran.
+              Masukkan kode lisensi dan API Key Gemini baru Anda untuk melanjutkan.
             </p>
 
-            {/* Key Input */}
+            {/* License Key Input */}
             <div className="mb-4">
               <label className="block text-xs font-bold text-[#94a3b8] uppercase tracking-widest mb-2">
                 Kode Lisensi
@@ -180,11 +191,46 @@ export default function PaywallModal({ trialsUsed, onLicenseActivated, onClose }
                 }`}
                 onKeyDown={e => e.key === 'Enter' && handleActivate()}
               />
+            </div>
+
+            {/* Gemini Key Input */}
+            <div className="mb-5">
+              <div className="flex items-center justify-between mb-2">
+                <label className="block text-xs font-bold text-[#94a3b8] uppercase tracking-widest">
+                  API Key Gemini Baru
+                </label>
+                <a
+                  href="https://aistudio.google.com/app/apikey"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-violet-400 text-[10px] hover:text-violet-300 transition-colors font-semibold"
+                >
+                  Dapatkan API Key →
+                </a>
+              </div>
+              <input
+                id="gemini-key-input"
+                type="text"
+                value={geminiApiKeyInput}
+                onChange={e => {
+                  setGeminiApiKeyInput(e.target.value)
+                  setStatus('idle')
+                }}
+                placeholder="Masukkan API Key Gemini Baru Anda"
+                className={`w-full glass border rounded-xl px-4 py-3 text-white text-sm placeholder-[#64748b] focus:outline-none transition-colors ${
+                  status === 'error'
+                    ? 'border-red-500/50 focus:border-red-500'
+                    : status === 'success'
+                    ? 'border-emerald-500/50'
+                    : 'border-white/10 focus:border-violet-500/50'
+                }`}
+                onKeyDown={e => e.key === 'Enter' && handleActivate()}
+              />
               {status === 'error' && (
                 <p className="text-red-400 text-xs mt-1.5">⚠️ {errorMsg}</p>
               )}
               {status === 'success' && (
-                <p className="text-emerald-400 text-xs mt-1.5">✅ Lisensi berhasil diaktifkan!</p>
+                <p className="text-emerald-400 text-xs mt-1.5">✅ Lisensi & API Key berhasil diaktifkan!</p>
               )}
             </div>
 
@@ -194,7 +240,7 @@ export default function PaywallModal({ trialsUsed, onLicenseActivated, onClose }
               id="activate-license-btn"
               className="w-full py-3.5 rounded-xl btn-primary font-black text-base disabled:opacity-50"
             >
-              {status === 'success' ? '✅ Berhasil!' : '🔓 Aktifkan Lisensi'}
+              {status === 'success' ? '✅ Berhasil!' : '🔓 Aktifkan Lisensi & API Key'}
             </button>
 
             <p className="text-[#64748b] text-xs text-center mt-4">
