@@ -159,6 +159,7 @@ export function buildPrompt(
   extraParams?: {
     recreationClothes?: string | null
     eraClassicFilter?: string | null
+    faceProfile?: string | null
   }
 ): string {
   let stylePrompt = ''
@@ -181,8 +182,12 @@ export function buildPrompt(
     stylePrompt = found?.prompt ?? ''
   }
 
+  const facePart = extraParams?.faceProfile 
+    ? `of the subject, who is: ${extraParams.faceProfile}.` 
+    : 'of the subject.'
+
   return `
-Professional portrait photography of the subject.
+Professional portrait photography ${facePart}
 Style: ${stylePrompt}
 ${FACE_LOCK_INSTRUCTION}
 High quality, photorealistic, professional studio lighting, sharp focus.

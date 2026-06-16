@@ -21,11 +21,20 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Style wajib dipilih.' }, { status: 400 })
     }
 
-    const englishPrompt = buildPrompt(style, option, customPrompt, { recreationClothes, eraClassicFilter })
-    
     // Check client header first, then env variable
     const clientApiKey = request.headers.get('X-Gemini-Key')
     const GEMINI_API_KEY = clientApiKey || process.env.GEMINI_API_KEY
+
+    let faceProfile = ''
+    if (GEMINI_API_KEY && imageData) {
+      faceProfile = await getFaceDescription(imageData, GEMINI_API_KEY)
+    }
+
+    const englishPrompt = buildPrompt(style, option, customPrompt, {
+      recreationClothes,
+      eraClassicFilter,
+      faceProfile
+    })
 
     // ── Real AI Mode (Gemini) ────────────────────────────────
     if (GEMINI_API_KEY && imageData) {
@@ -106,4 +115,61 @@ export async function POST(request: Request) {
 
 function simulateDelay(ms: number) {
   return new Promise(resolve => setTimeout(resolve, ms))
+}
+
+async function getFaceDescription(imageData: string, apiKey: string): Promise<string> {
+  try {
+    const mimeMatch = imageData.match(/^data:(.+?);base64,/)
+    const mimeType = mimeMatch ? mimeMatch[1] : 'image/jpeg'
+    const base64Data = imageData.replace(/^data:.+;base64,/, '')
+
+    // Describe the face details using gemini-2.0-flash
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{
+            parts: [
+              { text: "Analyze this portrait. Describe the person's head and face in detail for an image generator prompt (describe age, gender, ethnicity/nationality, skin tone, hair style/color, facial hair, glasses, face shape, and expression). Do not describe clothing, body, or background. Keep the description under 30 words and write it in English." },
+              {
+                inlineData: { mimeType, data: base64Data }
+              }
+            ]
+          }]
+        })
+      }
+    )
+
+    if (!res.ok) {
+      console.warn('Failed to describe face with gemini-2.0-flash, trying 1.5-flash fallback...')
+      const fallbackRes = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{
+              parts: [
+                { text: "Analyze this portrait. Describe the person's head and face in detail for an image generator prompt (describe age, gender, ethnicity/nationality, skin tone, hair style/color, facial hair, glasses, face shape, and expression). Do not describe clothing, body, or background. Keep the description under 30 words and write it in English." },
+                {
+                  inlineData: { mimeType, data: base64Data }
+                }
+              ]
+            }]
+          })
+        }
+      )
+      if (!fallbackRes.ok) return ''
+      const data = await fallbackRes.json()
+      return data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() ?? ''
+    }
+
+    const data = await res.json()
+    return data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() ?? ''
+  } catch (err) {
+    console.error('getFaceDescription error:', err)
+    return ''
+  }
 }
