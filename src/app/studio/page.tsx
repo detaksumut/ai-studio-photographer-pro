@@ -416,17 +416,17 @@ export default function StudioPage() {
       </header>
 
       {/* ── Main Layout ── */}
-      <div className="flex-1 max-w-screen-2xl mx-auto w-full flex flex-col lg:flex-row gap-0">
+      <div className="flex-1 max-w-screen-2xl mx-auto w-full flex flex-col lg:flex-row gap-0 lg:h-[calc(100vh-3.5rem)] lg:overflow-hidden">
 
         {/* ── LEFT SIDEBAR ── */}
-        <aside className="lg:w-80 xl:w-96 shrink-0 flex flex-col border-b lg:border-b-0 lg:border-r border-white/[0.06] bg-[#0b0f1a]">
+        <aside className="lg:w-80 xl:w-96 shrink-0 flex flex-col border-b lg:border-b-0 lg:border-r border-white/[0.06] bg-[#0b0f1a] lg:h-full lg:overflow-y-auto">
 
           {/* Upload Zone */}
           <div className="p-4 border-b border-white/[0.06]">
             <p className="text-xs font-bold text-[#64748b] uppercase tracking-widest mb-3">📸 Foto Anda</p>
 
             {uploadedPhoto ? (
-              <div className="relative group rounded-2xl overflow-hidden aspect-[3/4]">
+              <div className="relative group rounded-2xl overflow-hidden aspect-[2/3]">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={uploadedPhoto}
@@ -471,7 +471,7 @@ export default function StudioPage() {
                 {/* Drag & drop zone */}
                 <div
                   id="upload-zone"
-                  className={`upload-zone rounded-2xl aspect-[3/4] flex flex-col items-center justify-center gap-3 cursor-pointer transition-all ${dragOver ? 'drag-over' : ''}`}
+                  className={`upload-zone rounded-2xl aspect-[2/3] flex flex-col items-center justify-center gap-3 cursor-pointer transition-all ${dragOver ? 'drag-over' : ''}`}
                   onDragOver={e => { e.preventDefault(); setDragOver(true) }}
                   onDragLeave={() => setDragOver(false)}
                   onDrop={handleDrop}
@@ -585,7 +585,7 @@ export default function StudioPage() {
         </aside>
 
         {/* ── CENTER/RIGHT: Options + Results ── */}
-        <main className="flex-1 flex flex-col min-w-0 bg-[#080b14]">
+        <main className="flex-1 flex flex-col min-w-0 bg-[#080b14] lg:h-full lg:overflow-y-auto">
 
           {/* Menu Tab Bar */}
           <div className="border-b border-white/[0.06] px-4 overflow-x-auto bg-[#0b0f1a]">
@@ -822,7 +822,7 @@ export default function StudioPage() {
                         <p className="text-[#94a3b8] text-xs font-bold tracking-wider uppercase">📸 Foto Original</p>
                       </div>
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={uploadedPhoto} alt="Foto original" className="result-image w-full aspect-[3/4] object-cover" />
+                      <img src={uploadedPhoto} alt="Foto original" className="result-image w-full aspect-[2/3] object-cover" />
                     </div>
                   )}
 
@@ -834,7 +834,7 @@ export default function StudioPage() {
                         <span className="text-[10px] text-[#64748b] font-black bg-white/5 px-2 py-0.5 rounded">V{generatedImages.length - generatedImages.indexOf(currentImage)}</span>
                       </div>
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={currentImage.url} alt={currentImage.optionLabel} className="result-image w-full aspect-[3/4] object-cover" />
+                      <img src={currentImage.url} alt={currentImage.optionLabel} className="result-image w-full aspect-[2/3] object-cover" />
                       
                       {/* ❤️ Simpan / Suka / Ganti / Edit buttons */}
                       <div className="p-3 bg-black/35 border-t border-white/[0.06] grid grid-cols-4 gap-2">

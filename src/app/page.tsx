@@ -355,7 +355,7 @@ export default function HomePage() {
                 key={i}
                 className="glass-card rounded-2xl border border-white/[0.07] overflow-hidden group hover:-translate-y-2 transition-transform duration-300"
               >
-                <div className="aspect-[3/4] flex flex-col items-center justify-center gap-3 bg-gradient-to-br from-white/[0.03] to-transparent">
+                <div className="aspect-[2/3] flex flex-col items-center justify-center gap-3 bg-gradient-to-br from-white/[0.03] to-transparent">
                   <div className="text-6xl sm:text-7xl group-hover:scale-110 transition-transform duration-300">
                     {item.emoji}
                   </div>

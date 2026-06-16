@@ -105,9 +105,9 @@ export default function CameraCapture({ onCapture, onClose }: Props) {
         </div>
 
         {/* Camera View */}
-        <div className="relative bg-black aspect-video">
+        <div className="relative bg-black aspect-[2/3] max-h-[50vh] max-w-[340px] mx-auto rounded-2xl overflow-hidden border border-white/5 shadow-inner">
           {error ? (
-            <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-center p-6">
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-center p-6 bg-[#0f1524]">
               <div className="text-4xl">🚫</div>
               <p className="text-[#94a3b8] text-sm">{error}</p>
               <button
