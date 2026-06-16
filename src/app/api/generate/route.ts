@@ -8,19 +8,24 @@ interface GenerateRequest {
   style: StyleCategory
   option: string | null
   customPrompt: string
+  recreationClothes?: string | null
+  eraClassicFilter?: string | null
 }
 
 export async function POST(request: Request) {
   try {
     const body: GenerateRequest = await request.json()
-    const { imageData, style, option, customPrompt } = body
+    const { imageData, style, option, customPrompt, recreationClothes, eraClassicFilter } = body
 
     if (!style) {
       return NextResponse.json({ error: 'Style wajib dipilih.' }, { status: 400 })
     }
 
-    const englishPrompt = buildPrompt(style, option, customPrompt)
-    const GEMINI_API_KEY = process.env.GEMINI_API_KEY
+    const englishPrompt = buildPrompt(style, option, customPrompt, { recreationClothes, eraClassicFilter })
+    
+    // Check client header first, then env variable
+    const clientApiKey = request.headers.get('X-Gemini-Key')
+    const GEMINI_API_KEY = clientApiKey || process.env.GEMINI_API_KEY
 
     // ── Real AI Mode (Gemini) ────────────────────────────────
     if (GEMINI_API_KEY && imageData) {
