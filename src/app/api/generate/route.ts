@@ -84,7 +84,7 @@ export async function POST(request: Request) {
           { name: 'gemini-3.1-flash-image', type: 'generateContent' },
           { name: 'gemini-3-pro-image', type: 'generateContent' },
           { name: 'gemini-2.5-flash-image', type: 'generateContent' },
-          { name: 'imagen-3.0-generate-002', type: 'predict' },
+          { name: 'imagen-3.0-generate-002', type: 'generateImages' },
         ]
 
         let geminiRes: Response | null = null
@@ -104,7 +104,7 @@ export async function POST(request: Request) {
                 },
                 numberOfImages: 1,
                 outputMimeType: "image/jpeg",
-                aspectRatio: "3:4"
+                aspectRatio: "9:16"
               }
             } else if (endpoint === 'predict') {
               requestBody = {
@@ -115,7 +115,7 @@ export async function POST(request: Request) {
                 ],
                 parameters: {
                   sampleCount: 1,
-                  aspectRatio: "3:4",
+                  aspectRatio: "9:16",
                   outputMimeType: "image/jpeg"
                 }
               }
