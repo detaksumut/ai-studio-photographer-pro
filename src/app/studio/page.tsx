@@ -3,20 +3,8 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
 import Link from 'next/link'
 import {
-  FORMAL_OPTIONS,
-  REKREASI_OPTIONS,
-  FUTURISTIK_OPTIONS,
-  ERA_KLASIK_OPTIONS,
-  ROMANTIS_OPTIONS,
-  ORIGINAL_HD_OPTIONS,
-  CUSTOM_AI_QUICK_PROMPTS,
-  REKREASI_DESTINATIONS,
-  REKREASI_CLOTHES,
-  ERA_KLASIK_DECADES,
-  ERA_KLASIK_FILTERS,
   MODIFICATION_SUGGESTIONS,
   type StyleCategory,
-  type PromptOption,
 } from '../_lib/prompts'
 import {
   getLicenseStatus,
@@ -38,34 +26,9 @@ interface GeneratedImage {
   mode: 'ai' | 'mock'
 }
 
-// ─── Constants ───────────────────────────────────────────────
-const MENU_TABS: { id: StyleCategory; label: string; icon: string }[] = [
-  { id: 'original-hd', label: 'Original HD', icon: '✨' },
-  { id: 'formal', label: 'Formal', icon: '👔' },
-  { id: 'rekreasi', label: 'Rekreasi', icon: '🌏' },
-  { id: 'futuristik', label: 'Futuristik', icon: '🚀' },
-  { id: 'era-klasik', label: 'Era Klasik', icon: '🎞️' },
-  { id: 'romantis', label: 'Romantis', icon: '🌸' },
-  { id: 'custom', label: 'Custom AI', icon: '🤖' },
-]
-
-function getOptions(category: StyleCategory): PromptOption[] {
-  switch (category) {
-    case 'formal':      return FORMAL_OPTIONS
-    case 'rekreasi':    return REKREASI_OPTIONS
-    case 'futuristik':  return FUTURISTIK_OPTIONS
-    case 'era-klasik':  return ERA_KLASIK_OPTIONS
-    case 'romantis':    return ROMANTIS_OPTIONS
-    case 'original-hd': return ORIGINAL_HD_OPTIONS
-    default:            return []
-  }
-}
-
 // ─── Main Component ───────────────────────────────────────────
 export default function StudioPage() {
   const [uploadedPhoto, setUploadedPhoto] = useState<string | null>(null)
-  const [selectedMenu, setSelectedMenu] = useState<StyleCategory>('original-hd')
-  const [selectedOption, setSelectedOption] = useState<string | null>(null)
   const [customPrompt, setCustomPrompt] = useState('')
   const [isGenerating, setIsGenerating] = useState(false)
   const [generatedImages, setGeneratedImages] = useState<GeneratedImage[]>([])
@@ -74,19 +37,10 @@ export default function StudioPage() {
   const [generateError, setGenerateError] = useState<string | null>(null)
   const [showVersionHistory, setShowVersionHistory] = useState(false)
 
-  // Submenu states
-  const [formalGender, setFormalGender] = useState<'pria' | 'wanita'>('pria')
-  const [recreationClothes, setRecreationClothes] = useState<string>('casual')
-  const [eraClassicFilter, setEraClassicFilter] = useState<string>('kodak')
-
   // Liked generated image IDs
   const [likedImages, setLikedImages] = useState<string[]>([])
-  
-  // Modification states (Ganti/Edit)
-  const [showModification, setShowModification] = useState(false)
-  const [modificationInput, setModificationInput] = useState('')
 
-  // New modals
+  // Modals
   const [showCamera, setShowCamera] = useState(false)
   const [showPaywall, setShowPaywall] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
@@ -95,7 +49,7 @@ export default function StudioPage() {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const resultsRef = useRef<HTMLDivElement>(null)
 
-  // Load license on mount (client only)
+  // Load license on mount
   useEffect(() => {
     setLicense(getLicenseStatus())
   }, [])
@@ -103,26 +57,6 @@ export default function StudioPage() {
   const refreshLicense = useCallback(() => {
     setLicense(getLicenseStatus())
   }, [])
-
-  // Sensible defaults on menu change
-  useEffect(() => {
-    if (selectedMenu === 'formal') {
-      setSelectedOption(formalGender === 'pria' ? 'ceo' : 'blazer')
-    } else if (selectedMenu === 'rekreasi') {
-      setSelectedOption('bali')
-      setRecreationClothes('casual')
-    } else if (selectedMenu === 'era-klasik') {
-      setSelectedOption('1960')
-      setEraClassicFilter('kodak')
-    } else {
-      const opts = getOptions(selectedMenu)
-      if (opts.length > 0) {
-        setSelectedOption(opts[0].id)
-      } else {
-        setSelectedOption(null)
-      }
-    }
-  }, [selectedMenu, formalGender])
 
   // ── Upload Handlers ──────────────────────────────────────
   const handleFileSelect = useCallback((file: File) => {
@@ -167,21 +101,12 @@ export default function StudioPage() {
   }
 
   // ── Generate ─────────────────────────────────────────────
-  const handleGenerate = async () => {
+  const handleGenerateDirectly = async (promptText: string) => {
     if (!uploadedPhoto) {
-      alert('Silakan upload foto terlebih dahulu.')
-      return
-    }
-    if (selectedMenu !== 'custom' && !selectedOption) {
-      alert('Silakan pilih gaya/tema yang diinginkan.')
-      return
-    }
-    if (selectedMenu === 'custom' && !customPrompt.trim()) {
-      alert('Silakan ketik perintah Anda.')
+      alert('Silakan ambil selfie atau upload foto terlebih dahulu.')
       return
     }
 
-    // ── Trial / License Check ──
     const currentLicense = getLicenseStatus()
     if (!currentLicense.canGenerate) {
       setShowPaywall(true)
@@ -192,22 +117,6 @@ export default function StudioPage() {
     setGenerateError(null)
 
     try {
-      let optionLabel = ''
-      if (selectedMenu === 'custom') {
-        optionLabel = customPrompt
-      } else if (selectedMenu === 'rekreasi') {
-        const dest = REKREASI_DESTINATIONS.find(d => d.id === selectedOption)?.label ?? ''
-        const cloth = REKREASI_CLOTHES.find(c => c.id === recreationClothes)?.label ?? ''
-        optionLabel = `${dest} (${cloth})`
-      } else if (selectedMenu === 'era-klasik') {
-        const dec = ERA_KLASIK_DECADES.find(d => d.id === selectedOption)?.label ?? ''
-        const filt = ERA_KLASIK_FILTERS.find(f => f.id === eraClassicFilter)?.label ?? ''
-        optionLabel = `Era ${dec}an (${filt})`
-      } else {
-        const optList = getOptions(selectedMenu)
-        optionLabel = optList.find(o => o.id === selectedOption)?.label ?? selectedOption ?? ''
-      }
-
       const geminiKey = currentLicense.geminiApiKey
 
       const res = await fetch('/api/generate', {
@@ -218,11 +127,9 @@ export default function StudioPage() {
         },
         body: JSON.stringify({
           imageData: uploadedPhoto,
-          style: selectedMenu,
-          option: selectedOption,
-          customPrompt,
-          recreationClothes: selectedMenu === 'rekreasi' ? recreationClothes : null,
-          eraClassicFilter: selectedMenu === 'era-klasik' ? eraClassicFilter : null,
+          style: 'custom',
+          option: null,
+          customPrompt: promptText,
         }),
       })
 
@@ -241,8 +148,8 @@ export default function StudioPage() {
       const newImage: GeneratedImage = {
         id: Date.now().toString(),
         url: data.imageUrl,
-        style: selectedMenu,
-        optionLabel,
+        style: 'custom',
+        optionLabel: promptText,
         timestamp: new Date(),
         prompt: data.prompt ?? '',
         mode: data.mode ?? 'mock',
@@ -262,72 +169,12 @@ export default function StudioPage() {
     }
   }
 
-  // ── Ganti/Modify Generate ────────────────────────────────
-  const handleModifyGenerate = async (instruction: string) => {
-    if (!uploadedPhoto) {
-      alert('Silakan upload foto terlebih dahulu.')
+  const handleGenerate = async () => {
+    if (!customPrompt.trim()) {
+      alert('Silakan ketik perintah Anda terlebih dahulu.')
       return
     }
-    const currentLicense = getLicenseStatus()
-    if (!currentLicense.canGenerate) {
-      setShowPaywall(true)
-      return
-    }
-
-    setIsGenerating(true)
-    setGenerateError(null)
-
-    try {
-      const geminiKey = currentLicense.geminiApiKey
-
-      const res = await fetch('/api/generate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(geminiKey ? { 'X-Gemini-Key': geminiKey } : {}),
-        },
-        body: JSON.stringify({
-          imageData: uploadedPhoto, // locking identity from the original photo!
-          style: 'custom',
-          option: null,
-          customPrompt: instruction,
-        }),
-      })
-
-      const data = await res.json()
-
-      if (!res.ok || data.error) {
-        throw new Error(data.error ?? 'Modifikasi gagal')
-      }
-
-      if (!currentLicense.isLicensed) {
-        incrementTrialCount()
-        refreshLicense()
-      }
-
-      const newImage: GeneratedImage = {
-        id: Date.now().toString(),
-        url: data.imageUrl,
-        style: 'custom',
-        optionLabel: instruction,
-        timestamp: new Date(),
-        prompt: data.prompt ?? '',
-        mode: data.mode ?? 'mock',
-      }
-
-      setGeneratedImages(prev => [newImage, ...prev])
-      setCurrentImage(newImage)
-      setModificationInput('')
-
-      setTimeout(() => {
-        resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-      }, 100)
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Terjadi kesalahan. Coba lagi.'
-      setGenerateError(msg)
-    } finally {
-      setIsGenerating(false)
-    }
+    await handleGenerateDirectly(customPrompt)
   }
 
   const handleDownload = (img: GeneratedImage) => {
@@ -336,8 +183,6 @@ export default function StudioPage() {
     a.download = `ai-studio-${img.optionLabel.replace(/\s+/g, '-')}-${img.id}.jpg`
     a.click()
   }
-
-  const options = getOptions(selectedMenu)
 
   // Trial indicator
   const trialsLeft = license?.trialsRemaining ?? 3
@@ -538,266 +383,143 @@ export default function StudioPage() {
             </div>
           )}
 
-          {/* Generate Button */}
-          <div className="p-4 mt-auto">
-            {/* Trial warning */}
-            {license !== null && !isLicensed && trialsLeft <= 1 && trialsLeft > 0 && (
-              <div className="mb-3 px-3 py-2 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs text-center font-semibold">
-                ⚠️ Sisa {trialsLeft} uji coba gratis
-              </div>
-            )}
-
-            <button
-              id="generate-btn"
-              onClick={handleGenerate}
-              disabled={isGenerating || !uploadedPhoto}
-              className={`w-full py-4 rounded-2xl font-black text-base transition-all ${
-                !uploadedPhoto || isGenerating
-                  ? 'bg-white/5 text-[#64748b] cursor-not-allowed border border-white/5'
-                  : trialsLeft === 0 && !isLicensed
-                  ? 'bg-gradient-to-r from-red-600 to-orange-600 text-white hover:opacity-90 shadow-lg shadow-red-500/10'
-                  : 'btn-primary shadow-lg shadow-violet-500/20 active:scale-95'
-              }`}
-            >
-              {isGenerating ? (
-                <span className="flex items-center justify-center gap-2">
-                  <span className="flex gap-1">
-                    <span className="typing-dot w-2 h-2 rounded-full bg-current inline-block" />
-                    <span className="typing-dot w-2 h-2 rounded-full bg-current inline-block" />
-                    <span className="typing-dot w-2 h-2 rounded-full bg-current inline-block" />
-                  </span>
-                  AI Bekerja…
-                </span>
-              ) : trialsLeft === 0 && !isLicensed ? (
-                '🔒 Beli Lisensi'
-              ) : (
-                '⚡ Generate Foto'
-              )}
-            </button>
-
-            {generateError && (
-              <p className="text-red-400 text-xs mt-2 text-center font-medium">{generateError}</p>
-            )}
-            {!uploadedPhoto && (
-              <p className="text-[#64748b] text-xs mt-2 text-center">Upload foto dulu untuk mulai</p>
-            )}
+          {/* Guide/Sidebar Note */}
+          <div className="p-4 text-xs text-[#64748b] space-y-2 mt-auto">
+            <p>💡 **Tips Kunci Wajah**:</p>
+            <p>AI akan otomatis memindai kacamata, warna kulit, potongan rambut, dan ekspresi asli wajah Anda untuk dikunci di hasil generate.</p>
           </div>
         </aside>
 
-        {/* ── CENTER/RIGHT: Options + Results ── */}
+        {/* ── CENTER/RIGHT: Prompt Input + Results ── */}
         <main className="flex-1 flex flex-col min-w-0 bg-[#080b14] lg:h-full lg:overflow-y-auto">
 
-          {/* Menu Tab Bar */}
-          <div className="border-b border-white/[0.06] px-4 overflow-x-auto bg-[#0b0f1a]">
-            <div className="flex gap-1 min-w-max">
-              {MENU_TABS.map(tab => (
-                <button
-                  key={tab.id}
-                  id={`tab-${tab.id}`}
-                  onClick={() => { setSelectedMenu(tab.id); setSelectedOption(null) }}
-                  className={`tab-item flex items-center gap-1.5 px-4 py-4 text-sm font-semibold text-[#94a3b8] hover:text-white transition-colors relative ${selectedMenu === tab.id ? 'active text-white' : ''}`}
-                >
-                  <span>{tab.icon}</span>
-                  <span>{tab.label}</span>
-                  {selectedMenu === tab.id && (
-                    <span className="absolute bottom-0 left-4 right-4 h-0.5 bg-gradient-to-r from-violet-500 to-cyan-500 rounded-full" />
-                  )}
-                </button>
-              ))}
+          {/* Main Input Area */}
+          <div className="p-4 sm:p-6 border-b border-white/[0.06] bg-[#090d18] space-y-4">
+            <div>
+              <h2 className="text-white font-black text-lg mb-1 flex items-center gap-2">
+                <span>🤖</span> Perintah Gaya AI
+              </h2>
+              <p className="text-[#94a3b8] text-xs">
+                Ketik instruksi gaya (baju, latar belakang) dalam Bahasa Indonesia. Wajah Anda akan tetap dikunci identitasnya.
+              </p>
             </div>
-          </div>
 
-          {/* Options Panel */}
-          <div className="p-4 sm:p-6 border-b border-white/[0.06] bg-[#090d18]">
-            {/* Custom AI menu (menu 7) */}
-            {selectedMenu === 'custom' && (
-              <div className="max-w-2xl animate-fade-in" id="custom-ai-panel">
-                <h2 className="text-white font-bold text-lg mb-1 flex items-center gap-2">
-                  <span>🤖</span> Custom AI
-                </h2>
-                <p className="text-[#94a3b8] text-sm mb-4">Tulis instruksi dalam Bahasa Indonesia — AI otomatis membuat prompt profesional.</p>
-                <textarea
-                  id="custom-prompt-input"
-                  value={customPrompt}
-                  onChange={e => setCustomPrompt(e.target.value)}
-                  placeholder='Contoh: "jadi presiden" atau "jadi pebisnis sukses di helipad"'
-                  className="w-full glass border border-white/10 rounded-2xl px-4 py-3 text-white placeholder-[#64748b] text-sm resize-none focus:outline-none focus:border-violet-500/50 transition-colors"
-                  rows={4}
-                />
-                <div className="mt-3">
-                  <p className="text-xs text-[#64748b] mb-2 font-semibold">Ide cepat (klik untuk mengisi):</p>
-                  <div className="flex flex-wrap gap-2">
-                    {CUSTOM_AI_QUICK_PROMPTS.map(prompt => (
+            <div className="flex flex-col sm:flex-row gap-3">
+              <input
+                id="custom-prompt-input"
+                type="text"
+                value={customPrompt}
+                onChange={e => setCustomPrompt(e.target.value)}
+                placeholder='Contoh: "ganti jas hitam", "ganti ke gaya pantai Bali", "senyum sedikit", "lebih muda 10 tahun"...'
+                className="flex-1 glass border border-white/10 rounded-2xl px-4 py-3.5 text-white placeholder-[#64748b] text-sm focus:outline-none focus:border-violet-500/50 transition-colors"
+                onKeyDown={e => {
+                  if (e.key === 'Enter' && !isGenerating) {
+                    handleGenerate()
+                  }
+                }}
+              />
+              <button
+                id="generate-btn"
+                onClick={handleGenerate}
+                disabled={isGenerating || !uploadedPhoto}
+                className={`px-6 py-3.5 rounded-2xl font-black text-sm shrink-0 transition-all ${
+                  !uploadedPhoto || isGenerating
+                    ? 'bg-white/5 text-[#64748b] cursor-not-allowed border border-white/5'
+                    : trialsLeft === 0 && !isLicensed
+                    ? 'bg-gradient-to-r from-red-600 to-orange-600 text-white hover:opacity-90'
+                    : 'btn-primary shadow-lg shadow-violet-500/20 active:scale-95'
+                }`}
+              >
+                {isGenerating ? (
+                  <span className="flex items-center gap-2">
+                    <span className="flex gap-1">
+                      <span className="typing-dot w-1.5 h-1.5 rounded-full bg-current inline-block" />
+                      <span className="typing-dot w-1.5 h-1.5 rounded-full bg-current inline-block" />
+                      <span className="typing-dot w-1.5 h-1.5 rounded-full bg-current inline-block" />
+                    </span>
+                    AI Bekerja…
+                  </span>
+                ) : trialsLeft === 0 && !isLicensed ? (
+                  '🔒 Beli Lisensi'
+                ) : (
+                  '⚡ Proses Foto'
+                )}
+              </button>
+            </div>
+
+            {/* Categorized suggestion chips */}
+            <div className="space-y-2">
+              <p className="text-xs text-[#64748b] font-bold uppercase tracking-wider">💡 Rekomendasi Gaya Instan (Klik untuk memproses):</p>
+              
+              <div className="space-y-2.5">
+                {/* Row 1: Formal & Profesi */}
+                <div className="flex items-start">
+                  <span className="text-[10px] text-violet-400 font-bold uppercase mr-2 mt-1.5 shrink-0 w-16">👔 Formal:</span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {['jas hitam resmi', 'jas biru', 'batik premium', 'ceo', 'dokter', 'polisi', 'tentara', 'kebaya', 'hijab', 'blazer', 'pengacara'].map(chip => (
                       <button
-                        key={prompt}
-                        onClick={() => setCustomPrompt(prompt)}
-                        className="px-3 py-1.5 rounded-full glass border border-white/10 text-xs text-[#94a3b8] hover:text-white hover:border-white/20 transition-all font-semibold"
+                        key={chip}
+                        onClick={() => {
+                          setCustomPrompt(chip)
+                          handleGenerateDirectly(chip)
+                        }}
+                        className="px-2.5 py-1 rounded-full bg-white/5 border border-white/10 hover:border-violet-500/50 hover:bg-violet-500/5 text-xs text-[#94a3b8] hover:text-white transition-all font-semibold capitalize"
                       >
-                        {prompt}
+                        {chip}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Row 2: Wisata & Latar */}
+                <div className="flex items-start">
+                  <span className="text-[10px] text-cyan-400 font-bold uppercase mr-2 mt-1.5 shrink-0 w-16">🏖️ Wisata:</span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {['pantai bali', 'raja ampat', 'swiss', 'jepang', 'paris malam', 'maldives', 'lombok', 'korea', 'london', 'dubai'].map(chip => (
+                      <button
+                        key={chip}
+                        onClick={() => {
+                          setCustomPrompt(chip)
+                          handleGenerateDirectly(chip)
+                        }}
+                        className="px-2.5 py-1 rounded-full bg-white/5 border border-white/10 hover:border-cyan-500/50 hover:bg-cyan-500/5 text-xs text-[#94a3b8] hover:text-white transition-all font-semibold capitalize"
+                      >
+                        {chip}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Row 3: Koreksi Wajah */}
+                <div className="flex items-start">
+                  <span className="text-[10px] text-amber-400 font-bold uppercase mr-2 mt-1.5 shrink-0 w-16">✨ Efek:</span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {['lebih muda 10 tahun', 'senyum sedikit', 'kulit lebih cerah', 'auto enhance', 'cyberpunk', 'astronot', 'polaroid', 'kodak'].map(chip => (
+                      <button
+                        key={chip}
+                        onClick={() => {
+                          setCustomPrompt(chip)
+                          handleGenerateDirectly(chip)
+                        }}
+                        className="px-2.5 py-1 rounded-full bg-white/5 border border-white/10 hover:border-amber-500/50 hover:bg-amber-500/5 text-xs text-[#94a3b8] hover:text-white transition-all font-semibold capitalize"
+                      >
+                        {chip}
                       </button>
                     ))}
                   </div>
                 </div>
               </div>
-            )}
-
-            {/* Rekreasi menu (menu 3) */}
-            {selectedMenu === 'rekreasi' && (
-              <div className="space-y-5 animate-fade-in">
-                <h2 className="text-white font-bold text-lg flex items-center gap-2">
-                  <span>🌏</span> Rekreasi
-                </h2>
-                
-                <div>
-                  <p className="text-[#94a3b8] text-xs font-bold uppercase tracking-wider mb-2">🏖️ 1. Pilih Destinasi Wisata</p>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2.5">
-                    {REKREASI_DESTINATIONS.map(d => (
-                      <button
-                        key={d.id}
-                        onClick={() => setSelectedOption(d.id)}
-                        className={`glass-card border rounded-2xl p-3 text-center transition-all ${
-                          selectedOption === d.id 
-                            ? 'border-violet-500 bg-violet-500/10 text-white font-bold scale-[1.02] shadow-lg shadow-violet-500/5' 
-                            : 'border-white/10 hover:border-white/20 text-[#94a3b8]'
-                        }`}
-                      >
-                        <div className="text-2xl mb-1">{d.emoji}</div>
-                        <p className="text-xs">{d.label}</p>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <p className="text-[#94a3b8] text-xs font-bold uppercase tracking-wider mb-2">🧥 2. Pilihan Pakaian</p>
-                  <div className="flex flex-wrap gap-2">
-                    {REKREASI_CLOTHES.map(c => (
-                      <button
-                        key={c.id}
-                        onClick={() => setRecreationClothes(c.id)}
-                        className={`flex items-center gap-1.5 px-4 py-2.5 rounded-xl border text-xs font-bold transition-all ${
-                          recreationClothes === c.id
-                            ? 'bg-violet-600 border-violet-500 text-white shadow shadow-violet-500/20'
-                            : 'bg-white/5 border-white/10 text-[#94a3b8] hover:text-white hover:bg-white/10'
-                        }`}
-                      >
-                        <span>{c.emoji}</span>
-                        <span>{c.label}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Era Klasik menu (menu 5) */}
-            {selectedMenu === 'era-klasik' && (
-              <div className="space-y-5 animate-fade-in">
-                <h2 className="text-white font-bold text-lg flex items-center gap-2">
-                  <span>🎞️</span> Era Klasik
-                </h2>
-                
-                <div>
-                  <p className="text-[#94a3b8] text-xs font-bold uppercase tracking-wider mb-2">📅 1. Pilih Dekade Era</p>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-                    {ERA_KLASIK_DECADES.map(d => (
-                      <button
-                        key={d.id}
-                        onClick={() => setSelectedOption(d.id)}
-                        className={`glass-card border rounded-2xl p-3.5 text-center transition-all ${
-                          selectedOption === d.id 
-                            ? 'border-violet-500 bg-violet-500/10 text-white font-bold scale-[1.02] shadow-lg shadow-violet-500/5' 
-                            : 'border-white/10 hover:border-white/20 text-[#94a3b8]'
-                        }`}
-                      >
-                        <div className="text-2xl mb-1">{d.emoji}</div>
-                        <p className="text-xs font-semibold">{d.label}</p>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <p className="text-[#94a3b8] text-xs font-bold uppercase tracking-wider mb-2">📸 2. Pilihan Filter</p>
-                  <div className="flex flex-wrap gap-2">
-                    {ERA_KLASIK_FILTERS.map(f => (
-                      <button
-                        key={f.id}
-                        onClick={() => setEraClassicFilter(f.id)}
-                        className={`flex items-center gap-1.5 px-4 py-2.5 rounded-xl border text-xs font-bold transition-all ${
-                          eraClassicFilter === f.id
-                            ? 'bg-violet-600 border-violet-500 text-white shadow shadow-violet-500/20'
-                            : 'bg-white/5 border-white/10 text-[#94a3b8] hover:text-white hover:bg-white/10'
-                        }`}
-                      >
-                        <span>{f.emoji}</span>
-                        <span>{f.label}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Standard menus (Original HD, Formal, Futuristik, Romantis) */}
-            {selectedMenu !== 'custom' && selectedMenu !== 'rekreasi' && selectedMenu !== 'era-klasik' && (
-              <div className="animate-fade-in">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
-                  <h2 className="text-white font-bold text-lg flex items-center gap-2">
-                    <span>{MENU_TABS.find(t => t.id === selectedMenu)?.icon}</span>
-                    <span>{MENU_TABS.find(t => t.id === selectedMenu)?.label}</span>
-                  </h2>
-
-                  {/* Gender filter toggle for Formal */}
-                  {selectedMenu === 'formal' && (
-                    <div className="flex bg-white/5 p-1 rounded-xl border border-white/10 max-w-xs shrink-0 self-start sm:self-auto">
-                      <button
-                        onClick={() => { setFormalGender('pria'); setSelectedOption('ceo') }}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
-                          formalGender === 'pria'
-                            ? 'bg-violet-600 text-white shadow shadow-violet-500/10'
-                            : 'text-[#94a3b8] hover:text-white'
-                        }`}
-                      >
-                        <span>👔</span> Pria / Umum
-                      </button>
-                      <button
-                        onClick={() => { setFormalGender('wanita'); setSelectedOption('blazer') }}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
-                          formalGender === 'wanita'
-                            ? 'bg-violet-600 text-white shadow shadow-violet-500/10'
-                            : 'text-[#94a3b8] hover:text-white'
-                        }`}
-                      >
-                        <span>👗</span> Wanita
-                      </button>
-                    </div>
-                  )}
-                </div>
-
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
-                  {(selectedMenu === 'formal' ? options.filter(o => o.gender === formalGender) : options).map(opt => (
-                    <button
-                      key={opt.id}
-                      id={`option-${opt.id}`}
-                      onClick={() => setSelectedOption(opt.id)}
-                      className={`option-card glass-card border rounded-2xl p-4 text-center transition-all ${
-                        selectedOption === opt.id 
-                          ? 'border-violet-500 bg-violet-500/10 scale-102 shadow-lg shadow-violet-500/5' 
-                          : 'border-white/[0.07] hover:border-white/20'
-                      }`}
-                    >
-                      <div className="text-3xl mb-2">{opt.emoji}</div>
-                      <p className="text-white text-xs font-semibold leading-tight">{opt.label}</p>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
+            </div>
           </div>
 
           {/* Results Area */}
           <div ref={resultsRef} className="flex-1 p-4 sm:p-6">
+            {generateError && (
+              <div className="mb-4 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-semibold text-center">
+                ⚠️ {generateError}
+              </div>
+            )}
+
             {currentImage ? (
               <div className="animate-fade-in max-w-4xl">
                 <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
@@ -866,93 +588,18 @@ export default function StudioPage() {
                         </button>
 
                         <button
-                          onClick={() => setShowModification(!showModification)}
-                          className={`flex flex-col sm:flex-row items-center justify-center gap-1.5 py-2.5 rounded-xl border text-xs font-bold transition-all ${
-                            showModification
-                              ? 'bg-violet-500/20 border-violet-500/35 text-violet-300'
-                              : 'bg-white/5 border-white/10 text-[#94a3b8] hover:text-white hover:bg-white/10'
-                          }`}
+                          onClick={() => {
+                            document.getElementById('custom-prompt-input')?.focus()
+                            // Scroll to input
+                            document.getElementById('custom-prompt-input')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+                          }}
+                          className="flex flex-col sm:flex-row items-center justify-center gap-1.5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-[#94a3b8] hover:text-white hover:bg-white/10 text-xs font-bold transition-all col-span-2"
                         >
                           <span>🔄</span>
-                          <span className="text-[11px]">Ganti</span>
-                        </button>
-
-                        <button
-                          onClick={() => {
-                            setShowModification(true)
-                            setTimeout(() => {
-                              document.getElementById('modification-input-field')?.focus()
-                            }, 50)
-                          }}
-                          className="flex flex-col sm:flex-row items-center justify-center gap-1.5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-[#94a3b8] hover:text-white hover:bg-white/10 text-xs font-bold transition-all"
-                        >
-                          <span>📝</span>
-                          <span className="text-[11px]">Edit</span>
+                          <span className="text-[11px]">Ganti / Edit Gaya</span>
                         </button>
                       </div>
                     </div>
-
-                    {/* Inline Ganti/Modification Panel */}
-                    {showModification && (
-                      <div className="p-4 rounded-3xl glass border border-violet-500/20 bg-violet-500/[0.01] animate-slide-up shadow-xl shadow-black/10">
-                        <div className="flex items-center justify-between mb-2">
-                          <p className="text-white text-sm font-bold flex items-center gap-1.5">
-                            <span>🔄</span> Modifikasi Foto Hasil
-                          </p>
-                          <button 
-                            onClick={() => setShowModification(false)}
-                            className="text-[#64748b] hover:text-white text-xs"
-                          >
-                            Batal
-                          </button>
-                        </div>
-                        
-                        <div className="flex gap-2 mb-3">
-                          <input
-                            id="modification-input-field"
-                            type="text"
-                            value={modificationInput}
-                            onChange={e => setModificationInput(e.target.value)}
-                            placeholder="Ketik modifikasi (cth: ganti baju merah)"
-                            className="flex-1 glass border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder-[#64748b] text-sm focus:outline-none focus:border-violet-500/50 transition-colors"
-                            onKeyDown={e => {
-                              if (e.key === 'Enter' && modificationInput.trim()) {
-                                handleModifyGenerate(modificationInput)
-                              }
-                            }}
-                          />
-                          <button
-                            onClick={() => {
-                              if (modificationInput.trim()) {
-                                handleModifyGenerate(modificationInput)
-                              }
-                            }}
-                            disabled={isGenerating || !modificationInput.trim()}
-                            className="px-4 py-2.5 rounded-xl btn-primary font-bold text-sm shrink-0 disabled:opacity-50"
-                          >
-                            Ganti
-                          </button>
-                        </div>
-
-                        <div>
-                          <p className="text-xs text-[#64748b] mb-2 font-semibold">Saran cepat (klik langsung memproses):</p>
-                          <div className="flex flex-wrap gap-1.5">
-                            {MODIFICATION_SUGGESTIONS.map(suggestion => (
-                              <button
-                                key={suggestion}
-                                onClick={() => {
-                                  setModificationInput(suggestion)
-                                  handleModifyGenerate(suggestion)
-                                }}
-                                className="px-2.5 py-1.5 rounded-lg glass border border-white/10 text-[11px] text-[#94a3b8] hover:text-white hover:border-white/20 transition-all font-semibold"
-                              >
-                                {suggestion}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                    )}
                   </div>
                 </div>
 
@@ -980,11 +627,11 @@ export default function StudioPage() {
             ) : (
               <div className="flex flex-col items-center justify-center h-full min-h-64 text-center">
                 <div className="text-6xl mb-4 animate-float">🎨</div>
-                <h3 className="text-white font-bold text-xl mb-2">Siap Generate!</h3>
+                <h3 className="text-white font-bold text-xl mb-2">Siap Proses Foto!</h3>
                 <p className="text-[#94a3b8] text-sm max-w-sm">
                   {!uploadedPhoto
                     ? 'Ambil selfie atau upload foto dari galeri untuk mulai.'
-                    : 'Pilih gaya yang diinginkan lalu klik Generate Foto.'}
+                    : 'Ketik gaya yang diinginkan atau pilih rekomendasi di atas lalu klik Proses Foto.'}
                 </p>
                 {!uploadedPhoto && (
                   <div className="mt-5 flex gap-3 justify-center">

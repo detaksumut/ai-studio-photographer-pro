@@ -213,6 +213,61 @@ export function translateCustomPrompt(indonesian: string): string {
     'jadi petani modern': 'as a modern high-tech farmer, wearing smart casual work wear, standing in a high-tech smart greenhouse or vertical farm with hydroponic plants and LED grow lights, holding a digital tablet, clean and optimistic expression',
     'jadi pebisnis sukses': 'as a highly successful global business tycoon, wearing an ultra-luxurious tailored business suit, sitting in a penthouse corner office with floor-to-ceiling windows showing a modern city skyline at sunset, premium and powerful portrait',
     
+    // Professional profiles
+    'jas hitam resmi': 'wearing a formal classic black suit, white dress shirt, black tie, formal professional portrait, clean studio background',
+    'jas hitam': 'wearing a formal classic black suit, white dress shirt, black tie, formal professional portrait, clean studio background',
+    'jas biru': 'wearing an elegant navy blue suit, white shirt, patterned blue tie, professional executive pose, modern office setting',
+    'batik premium': 'wearing a premium Indonesian traditional batik shirt with elegant patterns, formal modern batik attire, professional portrait',
+    'batik': 'wearing a premium Indonesian traditional batik shirt with elegant patterns, formal modern batik attire, professional portrait',
+    'ceo': 'wearing a premium black tailored business suit, crisp white dress shirt, silk tie, confident CEO pose, modern corporate office background with city skyline',
+    'polisi': 'wearing an Indonesian police (POLRI) official uniform with badge and rank insignia, professional police portrait',
+    'tentara': 'wearing an Indonesian military (TNI) official uniform with medals and rank insignia, patriotic military portrait background',
+    'dokter': 'wearing a white doctor coat, stethoscope around neck, name badge, standing in a modern hospital or clinic background, professional medical portrait',
+    'perawat': 'wearing a clean professional nurse uniform, stethoscope, warm friendly smiling nurse portrait in clinical setting',
+    'pilot': 'wearing a professional airline pilot uniform with gold epaulettes and wings badge, pilot cap, standing in front of an airplane',
+    'kebaya': 'wearing a beautiful traditional Indonesian Kebaya with intricate lace and elegant batik sarong, traditional Indonesian wedding or formal look, elegant female portrait',
+    'hijab': 'wearing a professional hijab, matching elegant formal blazer and blouse, professional modern Muslim woman portrait, corporate office background',
+    'blazer': 'wearing an elegant tailored womens business blazer, professional chic attire, modern studio background, confident female executive portrait',
+    'pengacara': 'wearing a formal dark lawyer suit with white shirt and tie, holding documents, law office with bookshelves in background',
+    
+    // Travel profiles
+    'pantai bali': 'in beautiful Bali, tropical rice terrace or beach backdrop, wearing clean relaxed casual resort wear',
+    'bali': 'in beautiful Bali, tropical rice terrace or beach backdrop, wearing clean relaxed casual resort wear',
+    'raja ampat': 'in Raja Ampat Papua, pristine tropical beach with crystal clear turquoise water, wearing resort linen clothes',
+    'swiss': 'in Switzerland, majestic snowy Swiss Alps mountain view, wearing a stylish winter jacket, scenic travel photo',
+    'jepang': 'in Japan, cherry blossom sakura gardens in full bloom, Kyoto pagoda in background, casual fashion wear',
+    'paris malam': 'standing in Paris at night, romantic glowing Eiffel Tower in the background, warm city lights, ambient night portrait',
+    'paris': 'standing in Paris, Eiffel Tower in the background, golden hour lighting, stylish clothes',
+    'maldives': 'in the Maldives, luxury overwater bungalow deck, turquoise ocean background, wearing beachwear',
+    'lombok': 'in Lombok, pristine beaches and scenic Mount Rinjani backdrop, wearing light vacation clothes',
+    'korea': 'in South Korea, vibrant Seoul streets or historic Gyeongbokgung palace background, modern casual wear',
+    'london': 'in London UK, Big Ben and Westminster bridge in background, classic British setting',
+    'dubai': 'in Dubai, high-tech skyscrapers and Burj Khalifa skyline backdrop, golden evening sun, elegant outfit',
+
+    // Creative / Sci-fi / Romance
+    'cyberpunk': 'in a futuristic cyberpunk city, neon lights (blue, purple, pink), holographic billboards, rain-slicked streets, ultra-modern cyberpunk fashion, cinematic lighting',
+    'astronot': 'wearing a NASA-style spacesuit or advanced futuristic space suit, in outer space or on a space station, Earth visible in background, dramatic space lighting',
+    'kota masa depan': 'in a breathtaking utopian futuristic city, flying vehicles in background, towering glass and light skyscrapers, advanced architecture, soft blue and white palette',
+    'robot': 'in advanced futuristic mech armor suit or exoskeleton, industrial sci-fi warehouse background, dramatic metallic lighting, heroic pose',
+    'metaverse': 'in a vibrant digital metaverse world, surrounded by floating neon geometric shapes, virtual reality landscape, digital grid environment, glowing avatar aesthetic',
+    'taman bunga': 'standing in a lush blooming flower garden, surrounded by thousands of colorful roses and tulips, soft magical sunlight, dreamy atmosphere',
+    'sakura': 'under falling cherry blossom (sakura) petals, magical pink and white flowers, soft spring light filtering through branches, romantic Japanese garden',
+    'candle light': 'in a romantic candlelit setting, warm golden flickering candle light, elegant dinner or intimate ambiance, soft bokeh, warm tones',
+    'wedding': 'in a beautiful garden wedding setting, white floral arch, blooming roses and greenery, magical golden hour light, elegant wedding atmosphere',
+    
+    // Filters
+    'kodak': 'photographed with Kodak Gold film filter, warm golden tones, vintage analog texture',
+    'polaroid': 'polaroid instant photo style, soft focus, faded vintage colors, retro white border frame',
+    'vhs': 'VHS tape screenshot effect, retro tracking lines, analog scan lines, nostalgic home video look',
+    'film camera': 'shot on 35mm film camera, classic grain, authentic analog film look, rich colors',
+    
+    // Original HD
+    'auto enhance': 'auto enhanced photo quality, color corrected, balanced exposure, optimized contrast, high fidelity portrait',
+    'upscale 4k': 'ultra-high resolution 4K photo, crystal clear details, sharp focus, professional camera quality',
+    'upscale 8k': 'maximum detail 8K ultra high resolution, perfect rendering of textures, photorealistic masterpiece',
+    'sharpen': 'tack sharp focus, enhanced fine details, high clarity, crisp edges',
+    'remove noise': 'clean image, smooth noise-free surfaces, high ISO reduction, preserved details',
+
     // Modification prompts
     'ganti baju merah': 'wearing a stunning tailored vibrant red formal outfit, red blazer or red suit, elegant fashion portrait',
     'ganti ke paris malam': 'standing in Paris at night, romantic glowing Eiffel Tower in the background, warm city lights, ambient night portrait',
