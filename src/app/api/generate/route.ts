@@ -121,7 +121,7 @@ export async function POST(request: Request) {
               requestBody = {
                 contents: [{ parts }],
                 generationConfig: {
-                  responseModalalities: ['IMAGE', 'TEXT'],
+                  responseModalities: ['IMAGE', 'TEXT'],
                 },
               }
             }
